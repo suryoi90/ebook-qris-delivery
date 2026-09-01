@@ -1,4 +1,4 @@
-﻿const fs = require('fs');
+const fs = require('fs');
 const path = require('path');
 
 function write(f, c) {
@@ -26,7 +26,7 @@ write('package.json', JSON.stringify({
 write('next.config.mjs', '/** @type {import("next").NextConfig} */\nconst nextConfig = {};\nexport default nextConfig;\n');
 write('.gitignore', 'node_modules\n.next\n.env*.local\n.vercel\nsetup.js\n');
 
-write('app/layout.js', \export const metadata = {
+write('app/layout.js', `export const metadata = {
   title: 'E-Book RoPA dan DPIA - UU PDP',
   description: 'Beli E-Book RoPA dan DPIA UU PDP dengan QRIS Otomatis',
 };
@@ -39,14 +39,14 @@ export default function RootLayout({ children }) {
       </body>
     </html>
   );
-}\);
+}`);
 
-write('app/api/checkout/route.js', \import { NextResponse } from 'next/server';
+write('app/api/checkout/route.js', `import { NextResponse } from 'next/server';
 
 export async function POST(request) {
   try {
     const { nama, email, organisasi } = await request.json();
-    const orderId = "EBOOK-" + Date.now() + "-" + Math.floor(Math.random() * 1000);
+    const orderId = 'EBOOK-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
     const grossAmount = 150000;
 
     const serverKey = process.env.MIDTRANS_SERVER_KEY;
@@ -90,9 +90,9 @@ export async function POST(request) {
   } catch (error) {
     return NextResponse.json({ success: false, message: error.message }, { status: 500 });
   }
-}\);
+}`);
 
-write('app/api/webhook/route.js', \import { NextResponse } from 'next/server';
+write('app/api/webhook/route.js', `import { NextResponse } from 'next/server';
 import crypto from 'crypto';
 
 export async function POST(request) {
@@ -130,9 +130,9 @@ export async function POST(request) {
   } catch (error) {
     return NextResponse.json({ message: error.message }, { status: 500 });
   }
-}\);
+}`);
 
-write('app/page.js', \'use client';
+write('app/page.js', `'use client';
 import { useState } from 'react';
 
 export default function Home() {
@@ -215,6 +215,6 @@ export default function Home() {
       </div>
     </main>
   );
-}\);
+}`);
 
-console.log('✅ SEMUA FILE SUDAH BERHASIL DIBUAT DENGAN BERSIH!');
+console.log('✅ SEMUA FILE BERHASIL DIPERBAIKI BERSIH!');

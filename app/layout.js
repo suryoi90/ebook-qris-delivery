@@ -1,4 +1,4 @@
-﻿export const metadata = {
+export const metadata = {
   title: 'E-Book RoPA dan DPIA - UU PDP',
   description: 'Beli E-Book RoPA dan DPIA UU PDP dengan QRIS Otomatis',
 };

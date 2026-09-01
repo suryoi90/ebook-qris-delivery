@@ -1,9 +1,9 @@
-﻿import { NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 
 export async function POST(request) {
   try {
     const { nama, email, organisasi } = await request.json();
-    const orderId = `EBOOK-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+    const orderId = 'EBOOK-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
     const grossAmount = 150000;
 
     const serverKey = process.env.MIDTRANS_SERVER_KEY;
@@ -13,7 +13,7 @@ export async function POST(request) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Basic ${authHeader}`,
+        'Authorization': 'Basic ' + authHeader,
       },
       body: JSON.stringify({
         payment_type: 'qris',
@@ -32,7 +32,6 @@ export async function POST(request) {
     });
 
     const data = await midtransRes.json();
-
     if (data.status_code && data.status_code !== '201') {
       throw new Error(data.status_message || 'Gagal membuat QRIS di Midtrans');
     }
@@ -46,7 +45,6 @@ export async function POST(request) {
       qrUrl,
     });
   } catch (error) {
-    console.error('Error Checkout:', error);
     return NextResponse.json({ success: false, message: error.message }, { status: 500 });
   }
 }

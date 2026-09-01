@@ -1,4 +1,4 @@
-﻿import { NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import crypto from 'crypto';
 
 export async function POST(request) {
@@ -34,7 +34,6 @@ export async function POST(request) {
 
     return NextResponse.json({ status: 'OK' });
   } catch (error) {
-    console.error('Webhook Error:', error);
     return NextResponse.json({ message: error.message }, { status: 500 });
   }
 }
