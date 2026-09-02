@@ -10,7 +10,7 @@ export async function POST(request) {
       .replace(/[\[\]\(\)]/g, '')
       .substring(0, 45);
 
-    const serverKey = Buffer.from('TWlkLXNlcnZlci1TSnRUaWRta093VUxFbjJsZWdWVnBtbVc=', 'base64').toString('utf8');
+    const serverKey = Buffer.from('TWlkLXNlcnZlci1JcnhSWnlycTIwREYtSUFKX0xIMnFnUG8=', 'base64').toString('utf8');
     const authHeader = Buffer.from(serverKey + ':').toString('base64');
 
     const payload = {
@@ -35,7 +35,7 @@ export async function POST(request) {
       custom_field3: organisasi || '-',
     };
 
-    const res = await fetch('https://app.midtrans.com/snap/v1/transactions', {
+    const res = await fetch('https://app.sandbox.midtrans.com/snap/v1/transactions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
