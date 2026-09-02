@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 
 export function middleware(request) {
   const response = NextResponse.next();
-  response.headers.set('Content-Security-Policy', "default-src 'self'; base-uri 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://app.midtrans.com https://app.sandbox.midtrans.com; connect-src 'self' https://app.midtrans.com https://app.sandbox.midtrans.com https://api.midtrans.com https://api.sandbox.midtrans.com; frame-src 'self' https://app.midtrans.com https://app.sandbox.midtrans.com; frame-ancestors 'self'; form-action 'self'; img-src 'self' data: blob: https://app.midtrans.com https://app.sandbox.midtrans.com https://images.unsplash.com https://ui-avatars.com; font-src 'self' data:; style-src 'self' 'unsafe-inline'; object-src 'none'; upgrade-insecure-requests;");
+  response.headers.set('Content-Security-Policy', "default-src 'self'; base-uri 'self'; script-src 'self' 'unsafe-inline' https://app.midtrans.com https://app.sandbox.midtrans.com; connect-src 'self' https://app.midtrans.com https://app.sandbox.midtrans.com https://api.midtrans.com https://api.sandbox.midtrans.com; frame-src 'self' https://app.midtrans.com https://app.sandbox.midtrans.com; frame-ancestors 'self'; form-action 'self'; img-src 'self' data: blob: https://app.midtrans.com https://app.sandbox.midtrans.com https://images.unsplash.com https://ui-avatars.com; font-src 'self' data:; style-src 'self' 'unsafe-inline'; object-src 'none'; upgrade-insecure-requests;");
   response.headers.set('X-Content-Type-Options', 'nosniff');
   response.headers.set('X-Frame-Options', 'SAMEORIGIN');
   response.headers.set('X-XSS-Protection', '1; mode=block');
