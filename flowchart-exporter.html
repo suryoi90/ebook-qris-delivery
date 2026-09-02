@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Flowchart Arsitektur Sistem E-Book Otomatis</title>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <style>
+    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background-color: #030712; color: #f8fafc; margin: 0; padding: 40px 20px; display: flex; flex-direction: column; align-items: center; }
+    
+    .toolbar { margin-bottom: 24px; display: flex; gap: 12px; }
+    .btn-download { background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #fff; border: none; padding: 14px 28px; border-radius: 12px; font-weight: 800; font-size: 16px; cursor: pointer; box-shadow: 0 4px 20px rgba(2,132,199,0.4); display: flex; align-items: center; gap: 8px; transition: 0.2s; }
+    .btn-download:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(2,132,199,0.6); }
+
+    /* Canvas Container */
+    #flowchart-card {
+      width: 1280px;
+      background: linear-gradient(145deg, #090d16 0%, #060b13 100%);
+      border: 1.5px solid rgba(255, 255, 255, 0.1);
+      border-radius: 28px;
+      padding: 48px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+      position: relative;
+    }
+
+    .header { text-align: center; margin-bottom: 44px; }
+    .badge { display: inline-block; background: rgba(2,132,199,0.15); border: 1px solid #0284c7; color: #38bdf8; font-size: 12px; font-weight: 800; padding: 6px 16px; border-radius: 20px; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 12px; }
+    .title { font-size: 28px; font-weight: 900; color: #ffffff; margin: 0 0 8px; letter-spacing: -0.5px; }
+    .subtitle { font-size: 14px; color: #94a3b8; margin: 0; }
+
+    /* Grid Layout */
+    .flow-grid { display: flex; justify-content: space-between; align-items: stretch; position: relative; gap: 16px; }
+    
+    .card {
+      flex: 1;
+      background: #0f172a;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 18px;
+      padding: 24px 18px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    }
+
+    .card-num {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #0284c7;
+      color: #fff;
+      font-weight: 900;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 14px;
+    }
+
+    .card-title { font-size: 15px; font-weight: 800; color: #f8fafc; margin-bottom: 6px; }
+    .card-tag { font-size: 11px; font-weight: 700; color: #38bdf8; margin-bottom: 14px; text-transform: uppercase; }
+
+    .step-list { display: flex; flex-direction: column; gap: 8px; font-size: 12px; color: #cbd5e1; line-height: 1.4; }
+    .step-item { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); padding: 10px; border-radius: 10px; }
+    .step-item b { color: #ffffff; }
+
+    .highlight-box {
+      background: linear-gradient(135deg, rgba(2,132,199,0.15) 0%, rgba(14,165,233,0.05) 100%);
+      border: 1px dashed #0284c7;
+      padding: 10px;
+      border-radius: 10px;
+      font-size: 11px;
+      color: #bae6fd;
+      margin-top: 10px;
+    }
+
+    .arrow-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #0284c7;
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    .footer-bar {
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      color: #64748b;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="toolbar">
+    <button class="btn-download" onclick="downloadImage()">
+      📥 Download Gambar Flowchart (PNG High-Res)
+    </button>
+  </div>
+
+  <div id="flowchart-card">
+    
+    <div class="header">
+      <div class="badge">Sistem Arsitektur Otomatisasi</div>
+      <h1 class="title">E-Book Auto-Delivery & Watermark System</h1>
+      <p class="subtitle">Alur Transaksi, Verifikasi Webhook, Dynamic Watermark & Delivery Dokumen PDF (ebook.restiamoegiono.com)</p>
+    </div>
+
+    <div class="flow-grid">
+      
+      <!-- TAHAP 1 -->
+      <div class="card">
+        <div class="card-num">1</div>
+        <div class="card-title">Frontend Store</div>
+        <div class="card-tag">ebook.restiamoegiono.com</div>
+        <div class="step-list">
+          <div class="step-item"><b>1. Pilih Produk:</b> Pembeli memilih 1 dari 5 E-Book atau Layanan.</div>
+          <div class="step-item"><b>2. Input Data:</b> Mengisi Nama Lengkap, Email, & Organisasi.</div>
+          <div class="step-item"><b>3. Klik Beli:</b> Memanggil API <code>/api/checkout</code>.</div>
+        </div>
+      </div>
+
+      <div class="arrow-icon">➔</div>
+
+      <!-- TAHAP 2 -->
+      <div class="card">
+        <div class="card-num">2</div>
+        <div class="card-title">Midtrans Gateway</div>
+        <div class="card-tag">Snap Multi-Payment</div>
+        <div class="step-list">
+          <div class="step-item"><b>1. Snap Popup:</b> Jendela pembayaran resmi terbuka di layar.</div>
+          <div class="step-item"><b>2. Metode Pembayaran:</b> QRIS, BCA/Mandiri VA, GoPay, Card.</div>
+          <div class="step-item"><b>3. Settlement:</b> Pembeli membayar & status lunas seketika.</div>
+        </div>
+      </div>
+
+      <div class="arrow-icon">➔</div>
+
+      <!-- TAHAP 3 -->
+      <div class="card">
+        <div class="card-num">3</div>
+        <div class="card-title">Webhook Security</div>
+        <div class="card-tag">Next.js Serverless (Vercel)</div>
+        <div class="step-list">
+          <div class="step-item"><b>1. Receive Notif:</b> Menerima HTTP POST di <code>/api/webhook</code>.</div>
+          <div class="step-item"><b>2. SHA512 Auth:</b> Memverifikasi keaslian Signature Key.</div>
+          <div class="step-item"><b>3. Forward Payload:</b> Mengirim data ke Google Apps Script.</div>
+        </div>
+      </div>
+
+      <div class="arrow-icon">➔</div>
+
+      <!-- TAHAP 4 -->
+      <div class="card">
+        <div class="card-num">4</div>
+        <div class="card-title">Delivery Engine</div>
+        <div class="card-tag">Google Apps Script</div>
+        <div class="step-list">
+          <div class="step-item"><b>1. License Generator:</b> Membuat ID unik (ex: <code>RESMOEG-A9CT36D</code>).</div>
+          <div class="step-item"><b>2. Watermark:</b> Sisipkan nama, email & ID di footer Docs.</div>
+          <div class="step-item"><b>3. PDF Conversion:</b> Konversi Google Docs ke PDF & Enkripsi.</div>
+        </div>
+      </div>
+
+      <div class="arrow-icon">➔</div>
+
+      <!-- TAHAP 5 -->
+      <div class="card">
+        <div class="card-num">5</div>
+        <div class="card-title">Hasil Akhir</div>
+        <div class="card-tag">Customer & Database</div>
+        <div class="step-list">
+          <div class="step-item"><b>1. Email Dikirim:</b> Pembeli menerima PDF + Password ID Lisensi.</div>
+          <div class="step-item"><b>2. Spreadsheet Log:</b> Data pembeli & ID tersimpan di Sheet 'Penerima'.</div>
+          <div class="highlight-box">⚡ <b>Zero Touch:</b> 100% Otomatis tanpa campur tangan manual.</div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="footer-bar">
+      <div><b>Domain:</b> ebook.restiamoegiono.com &nbsp;|&nbsp; <b>Brand:</b> Restia Moegiono (@restiapriw)</div>
+      <div>Teknologi: Next.js 14 • Vercel • Midtrans SNAP • Google Apps Script • Google Docs API</div>
+    </div>
+
+  </div>
+
+  <script>
+    function downloadImage() {
+      const card = document.getElementById('flowchart-card');
+      html2canvas(card, { scale: 2, backgroundColor: '#030712' }).then(canvas => {
+        const link = document.createElement('a');
+        link.download = 'Flowchart_Arsitektur_Ebook_RestiaMoegiono.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      });
+    }
+  </script>
+
+</body>
+</html>
