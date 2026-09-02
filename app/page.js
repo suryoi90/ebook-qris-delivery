@@ -1,7 +1,6 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
-// 5 E-Book Utama (Kartu Besar)
 const FEATURED_BOOKS = [
   {
     id: 'iso-27001-main',
@@ -50,22 +49,20 @@ const FEATURED_BOOKS = [
   }
 ];
 
-// Layanan & Produk List
 const PAID_SERVICES = [
-  { id: 'chk-web-word', title: 'Checklist Keamanan Web (versi Word)', price: 100000, type: 'DOC', icon: '📝' },
-  { id: 'jasa-konsultasi', title: 'Jasa Konsultasi Keamanan Siber', price: 500000, type: 'SERVICE', icon: '💼' },
-  { id: 'traktiran-minres', title: 'Traktiran untuk Minres', price: 25000, type: 'DONATION', icon: '☕' },
-  { id: 'workshop-11-kontrol', title: 'Workshop Implementasi 11 Kontrol Baru Annex A ISO 27001:2022 (SekolahSiber)', price: 250000, type: 'WORKSHOP', icon: '🎓' },
-  { id: 'kursus-smartphone', title: 'Kursus Proteksi Smartphone di sekolahsiber.com', price: 99000, type: 'COURSE', icon: '📱' },
+  { id: 'chk-web-word', title: 'Checklist Keamanan Web (versi Word)', price: 100000, icon: '📝' },
+  { id: 'jasa-konsultasi', title: 'Jasa Konsultasi Keamanan Siber', price: 500000, icon: '💼' },
+  { id: 'traktiran-minres', title: 'Traktiran untuk Minres', price: 25000, icon: '☕' },
+  { id: 'workshop-11-kontrol', title: 'Workshop Implementasi 11 Kontrol Baru Annex A ISO 27001:2022 (SekolahSiber)', price: 250000, icon: '🎓' },
+  { id: 'kursus-smartphone', title: 'Kursus Proteksi Smartphone di sekolahsiber.com', price: 99000, icon: '📱' },
 ];
 
-// Koleksi Gratis
 const FREE_ITEMS = [
   { title: 'Free Ebook Buku Pegangan Tanggap Insiden', icon: '📘' },
   { title: 'Free Ebook Panduan Secure SDLC', icon: '📘' },
   { title: 'Free Ebook Modus Operandi Phishing', icon: '📘' },
   { title: 'Free Ebook Template Tanggap Insiden Siber', icon: '📘' },
-  { title: 'Free Excel Instrumen Penilaian Mandiri 18 Kontrol CIS untuk Mendukung Penerapan Cyber Security pada UU PDP', icon: '📊' },
+  { title: 'Free Excel Instrumen Penilaian Mandiri 18 Kontrol CIS pada UU PDP', icon: '📊' },
   { title: 'Free Checklist Keamanan Web (Non-Editable)', icon: '📑' },
   { title: 'Free Kebijakan Anti-Phishing', icon: '📑' },
   { title: 'Free Checklist Keamanan dan Privasi untuk Personal', icon: '📑' },
@@ -75,16 +72,28 @@ const FREE_ITEMS = [
 export default function Home() {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [form, setForm] = useState({ nama: '', email: '', organisasi: '' });
-  const [qris, setQris] = useState(null);
   const [loading, setLoading] = useState(false);
   const [freeModal, setFreeModal] = useState(null);
 
+  // Load Midtrans SDK secara dinamis & aman
+  useEffect(() => {
+    const clientKey = Buffer.from('TWlkLWNsaWVudC10M05ieHU2bGdfdTY4VHVz', 'base64').toString('utf8');
+    const script = document.createElement('script');
+    script.src = 'https://app.sandbox.midtrans.com/snap/snap.js';
+    script.setAttribute('data-client-key', clientKey);
+    script.async = true;
+    document.body.appendChild(script);
+
+    return () => {
+      try { document.body.removeChild(script); } catch (e) {}
+    };
+  }, []);
+
   const openCheckout = (item) => {
     setSelectedProduct(item);
-    setQris(null);
   };
 
-  const handleCheckout = async (e) => {
+  const handlePay = async (e) => {
     e.preventDefault();
     setLoading(true);
 
@@ -102,10 +111,29 @@ export default function Home() {
 
       const data = await res.json();
       setLoading(false);
-      if (data.success) {
-        setQris(data);
+
+      if (data.token) {
+        if (typeof window !== 'undefined' && window.snap) {
+          window.snap.pay(data.token, {
+            onSuccess: function(result) {
+              alert('Pembayaran Sukses! File E-Book ber-watermark otomatis dikirim ke email Anda.');
+              setSelectedProduct(null);
+            },
+            onPending: function(result) {
+              alert('Menunggu pembayaran diselesaikan...');
+            },
+            onError: function(result) {
+              alert('Pembayaran gagal atau dibatalkan.');
+            },
+            onClose: function() {
+              console.log('Pop-up ditutup.');
+            }
+          });
+        } else if (data.redirect_url) {
+          window.location.href = data.redirect_url;
+        }
       } else {
-        alert('Gagal membuat QRIS: ' + data.message);
+        alert('Gagal membuat pembayaran: ' + (data.message || JSON.stringify(data)));
       }
     } catch (err) {
       setLoading(false);
@@ -117,10 +145,9 @@ export default function Home() {
     <div style={{ minHeight: '100vh', backgroundColor: '#060b13', color: '#ffffff', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', padding: '40px 16px' }}>
       <div style={{ maxWidth: '480px', margin: '0 auto' }}>
 
-        {/* HEADER PROFIL LYNK.ID PERSIS SCREENSHOT */}
+        {/* HEADER PROFIL */}
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
           
-          {/* Avatar Hijab */}
           <div style={{ width: '92px', height: '92px', borderRadius: '50%', backgroundColor: '#ffffff', margin: '0 auto 14px', overflow: 'hidden', border: '2px solid rgba(255,255,255,0.2)', boxShadow: '0 4px 16px rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <svg width="84" height="84" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
               <circle cx="50" cy="50" r="48" fill="#F8FAFC"/>
@@ -151,7 +178,7 @@ export default function Home() {
 
         </div>
 
-        {/* 1. DAFTAR 5 E-BOOK UTAMA (KARTU BESAR TABLET) */}
+        {/* 5 E-BOOK UTAMA */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', marginBottom: '32px' }}>
           {FEATURED_BOOKS.map((p) => (
             <div key={p.id} style={{ backgroundColor: '#ffffff', borderRadius: '18px', overflow: 'hidden', color: '#0f172a', boxShadow: '0 8px 24px rgba(0,0,0,0.3)' }}>
@@ -189,7 +216,6 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* 3 Poin Fitur Box */}
               <div style={{ margin: '0 20px 14px', backgroundColor: '#f8fafc', border: '1.5px solid #e2e8f0', borderRadius: '14px', padding: '12px 14px', display: 'flex', alignItems: 'center', gap: '14px' }}>
                 <div style={{ width: '44px', height: '44px', borderRadius: '8px', backgroundColor: '#0284c7', color: '#ffffff', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontWeight: 'bold', fontSize: '9px', lineHeight: 1.1 }}>
                   <span>E-BOOK</span>
@@ -202,7 +228,6 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Judul & Harga & Tombol */}
               <div style={{ padding: '0 20px 20px' }}>
                 <h2 style={{ fontSize: '14px', fontWeight: '700', color: '#334155', margin: '0 0 8px' }}>
                   {p.title}
@@ -221,7 +246,7 @@ export default function Home() {
                   onClick={() => openCheckout(p)}
                   style={{ width: '100%', padding: '12px', backgroundColor: '#0284c7', color: '#ffffff', border: 'none', borderRadius: '12px', fontSize: '14px', fontWeight: '800', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', boxShadow: '0 4px 12px rgba(2,132,199,0.3)' }}
                 >
-                  Beli Sekarang (QRIS)
+                  Beli Sekarang (Pilih Pembayaran)
                 </button>
               </div>
 
@@ -229,13 +254,13 @@ export default function Home() {
           ))}
         </div>
 
-        {/* 2. LAYANAN & PRODUK DIGITAL LIST (PERSIS SCREENSHOT 2) */}
+        {/* LAYANAN & PRODUK DIGITAL */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '32px' }}>
           {PAID_SERVICES.map((item) => (
             <div 
               key={item.id}
               onClick={() => openCheckout(item)}
-              style={{ backgroundColor: '#ffffff', borderRadius: '14px', padding: '14px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: '#0f172a', cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', transition: '0.2s' }}
+              style={{ backgroundColor: '#ffffff', borderRadius: '14px', padding: '14px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: '#0f172a', cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)' }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
                 <div style={{ width: '40px', height: '40px', borderRadius: '10px', backgroundColor: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>
@@ -256,13 +281,13 @@ export default function Home() {
           ))}
         </div>
 
-        {/* 3. KOLEKSI FREE E-BOOK & CHECKLIST GRATIS (PERSIS SCREENSHOT 3 & 4) */}
+        {/* KOLEKSI FREE */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '40px' }}>
           {FREE_ITEMS.map((item, idx) => (
             <div 
               key={idx}
               onClick={() => setFreeModal(item.title)}
-              style={{ backgroundColor: '#ffffff', borderRadius: '14px', padding: '16px 18px', display: 'flex', alignItems: 'center', gap: '14px', color: '#0f172a', cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)' }}
+              style={{ backgroundColor: '#ffffff', borderRadius: '14px', padding: '16px 18px', display: 'flex', alignItems: 'center', gap: '14px', color: '#0f172a', cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.2)' }}
             >
               <div style={{ width: '36px', height: '36px', borderRadius: '8px', backgroundColor: '#f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', flexShrink: 0 }}>
                 {item.icon}
@@ -274,10 +299,10 @@ export default function Home() {
           ))}
         </div>
 
-        {/* MODAL CHECKOUT & QRIS */}
+        {/* MODAL CHECKOUT INFORMASI PEMBELI */}
         {selectedProduct && (
           <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px', zIndex: 9999 }}>
-            <div style={{ backgroundColor: '#ffffff', borderRadius: '24px', maxWidth: '440px', width: '100%', padding: '24px', color: '#0f172a', position: 'relative', maxHeight: '90vh', overflowY: 'auto' }}>
+            <div style={{ backgroundColor: '#ffffff', borderRadius: '24px', maxWidth: '440px', width: '100%', padding: '24px', color: '#0f172a', position: 'relative' }}>
               
               <button 
                 onClick={() => setSelectedProduct(null)} 
@@ -287,7 +312,7 @@ export default function Home() {
               </button>
 
               <div style={{ fontSize: '11px', fontWeight: '700', color: '#0284c7', textTransform: 'uppercase', marginBottom: '4px' }}>
-                Beli Produk Digital
+                Konfirmasi Data Pembeli
               </div>
               <h3 style={{ fontSize: '15px', fontWeight: '800', margin: '0 0 4px', color: '#0f172a', paddingRight: '24px', lineHeight: 1.3 }}>
                 {selectedProduct.title}
@@ -296,53 +321,32 @@ export default function Home() {
                 IDR {selectedProduct.price.toLocaleString('id-ID')}
               </div>
 
-              {!qris ? (
-                <form onSubmit={handleCheckout}>
-                  <div style={{ marginBottom: '12px' }}>
-                    <label style={{ display: 'block', fontSize: '12px', fontWeight: '700', color: '#334155', marginBottom: '4px' }}>Nama Lengkap:</label>
-                    <input required style={{ width: '100%', padding: '10px 12px', borderRadius: '10px', border: '1px solid #cbd5e1', boxSizing: 'border-box', fontSize: '13px' }}
-                      placeholder="Contoh: Budi Santoso"
-                      value={form.nama} onChange={(e) => setForm({ ...form, nama: e.target.value })} />
-                  </div>
-
-                  <div style={{ marginBottom: '12px' }}>
-                    <label style={{ display: 'block', fontSize: '12px', fontWeight: '700', color: '#334155', marginBottom: '4px' }}>Alamat Email (Pengiriman File):</label>
-                    <input required type="email" style={{ width: '100%', padding: '10px 12px', borderRadius: '10px', border: '1px solid #cbd5e1', boxSizing: 'border-box', fontSize: '13px' }}
-                      placeholder="nama@email.com"
-                      value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
-                  </div>
-
-                  <div style={{ marginBottom: '18px' }}>
-                    <label style={{ display: 'block', fontSize: '12px', fontWeight: '700', color: '#334155', marginBottom: '4px' }}>Organisasi / Perusahaan:</label>
-                    <input required style={{ width: '100%', padding: '10px 12px', borderRadius: '10px', border: '1px solid #cbd5e1', boxSizing: 'border-box', fontSize: '13px' }}
-                      placeholder="Contoh: PT Data Aman Indonesia"
-                      value={form.organisasi} onChange={(e) => setForm({ ...form, organisasi: e.target.value })} />
-                  </div>
-
-                  <button type="submit" disabled={loading} style={{ width: '100%', padding: '14px', backgroundColor: '#0284c7', color: '#ffffff', border: 'none', borderRadius: '12px', fontSize: '15px', fontWeight: '800', cursor: 'pointer' }}>
-                    {loading ? 'Membuat QRIS...' : 'Bayar via QRIS (IDR ' + selectedProduct.price.toLocaleString('id-ID') + ')'}
-                  </button>
-                </form>
-              ) : (
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{ backgroundColor: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: '12px', padding: '10px', marginBottom: '14px' }}>
-                    <div style={{ fontSize: '13px', fontWeight: 'bold', color: '#0369a1' }}>Scan QRIS untuk Pembayaran</div>
-                    <div style={{ fontSize: '16px', fontWeight: '900', color: '#0284c7', marginTop: '2px' }}>IDR {selectedProduct.price.toLocaleString('id-ID')}</div>
-                  </div>
-
-                  <div style={{ backgroundColor: '#ffffff', border: '2px dashed #94a3b8', borderRadius: '16px', padding: '14px', display: 'inline-block', marginBottom: '12px' }}>
-                    <img src={qris.qrUrl} alt="QRIS Code" style={{ width: '220px', height: '220px', display: 'block' }} />
-                  </div>
-
-                  <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '14px' }}>
-                    BCA, Mandiri, BRI, BNI, DANA, GoPay, OVO, ShopeePay
-                  </div>
-
-                  <div style={{ backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', padding: '10px 12px', borderRadius: '10px', fontSize: '12px', color: '#166534', textAlign: 'left' }}>
-                    ⚡ <b>Otomatis:</b> File digital ber-watermark atas nama <b>{form.nama}</b> ({form.organisasi}) akan langsung terkirim ke email <b>{form.email}</b>.
-                  </div>
+              <form onSubmit={handlePay}>
+                <div style={{ marginBottom: '12px' }}>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: '700', color: '#334155', marginBottom: '4px' }}>Nama Lengkap:</label>
+                  <input required style={{ width: '100%', padding: '10px 12px', borderRadius: '10px', border: '1px solid #cbd5e1', boxSizing: 'border-box', fontSize: '13px' }}
+                    placeholder="Contoh: Budi Santoso"
+                    value={form.nama} onChange={(e) => setForm({ ...form, nama: e.target.value })} />
                 </div>
-              )}
+
+                <div style={{ marginBottom: '12px' }}>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: '700', color: '#334155', marginBottom: '4px' }}>Alamat Email (Pengiriman E-Book):</label>
+                  <input required type="email" style={{ width: '100%', padding: '10px 12px', borderRadius: '10px', border: '1px solid #cbd5e1', boxSizing: 'border-box', fontSize: '13px' }}
+                    placeholder="nama@email.com"
+                    value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+                </div>
+
+                <div style={{ marginBottom: '18px' }}>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: '700', color: '#334155', marginBottom: '4px' }}>Organisasi / Perusahaan:</label>
+                  <input required style={{ width: '100%', padding: '10px 12px', borderRadius: '10px', border: '1px solid #cbd5e1', boxSizing: 'border-box', fontSize: '13px' }}
+                    placeholder="Contoh: PT Data Aman Indonesia"
+                    value={form.organisasi} onChange={(e) => setForm({ ...form, organisasi: e.target.value })} />
+                </div>
+
+                <button type="submit" disabled={loading} style={{ width: '100%', padding: '14px', backgroundColor: '#0284c7', color: '#ffffff', border: 'none', borderRadius: '12px', fontSize: '15px', fontWeight: '800', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                  {loading ? 'Membuka Pilihan Pembayaran...' : 'Lanjut ke Pembayaran (Pilih Bank / E-Wallet)'}
+                </button>
+              </form>
 
             </div>
           </div>
