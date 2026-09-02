@@ -6,7 +6,11 @@ export async function POST(request) {
     const orderId = 'EBOOK-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
     const grossAmount = Number(amount) || 50000;
 
-    // Kunci Produksi Resmi yang sudah lolos uji Status 201
+    // Bersihkan karakter khusus pada nama produk untuk Midtrans
+    const cleanProductName = (productTitle || 'E-Book')
+      .replace(/[\[\]\(\)]/g, '')
+      .substring(0, 45);
+
     const serverKey = Buffer.from('TWlkLXNlcnZlci1TSnRVaWRta093VUxFbjJsZWdWVnBtbVc=', 'base64').toString('utf8');
     const authHeader = Buffer.from(serverKey + ':').toString('base64');
 
@@ -16,15 +20,15 @@ export async function POST(request) {
         gross_amount: grossAmount,
       },
       customer_details: {
-        first_name: nama,
+        first_name: (nama || 'Pembeli').substring(0, 50),
         email: email,
       },
       item_details: [
         {
-          id: productId || 'ebook-1',
+          id: (productId || 'ebook-1').substring(0, 50),
           price: grossAmount,
           quantity: 1,
-          name: (productTitle || 'E-Book').substring(0, 50),
+          name: cleanProductName,
         }
       ],
       custom_field1: nama,
@@ -32,7 +36,6 @@ export async function POST(request) {
       custom_field3: organisasi || '-',
     };
 
-    // Endpoint Produksi Resmi Midtrans
     const snapUrl = 'https://app.midtrans.com/snap/v1/transactions';
 
     const res = await fetch(snapUrl, {
