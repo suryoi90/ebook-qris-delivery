@@ -1,4 +1,63 @@
-'use client';
+const https = require('https');
+const fs = require('fs');
+
+function getPage(url) {
+  return new Promise((resolve, reject) => {
+    https.get(url, { headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' } }, (res) => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => resolve(data));
+    }).on('error', reject);
+  });
+}
+
+async function run() {
+  console.log('⏳ Mengambil data dan asset gambar dari https://lynk.id/restiapriw...');
+  let avatarUrl = '';
+  let coverUrl = '';
+  let title = 'E-Book RoPA dan DPIA dalam Implementasi UU PDP';
+  let price = '150.000';
+  let desc = 'Buku Pegangan ini karya Restia Moegiono';
+
+  try {
+    const html = await getPage('https://lynk.id/restiapriw');
+    
+    // Ekstraksi data JSON dari __NEXT_DATA__ Lynk.id
+    const match = html.match(/<script id="__NEXT_DATA__" type="application\/json">([\s\S]*?)<\/script>/);
+    if (match) {
+      const json = JSON.parse(match[1]);
+      const pageProps = json.props?.pageProps;
+      const user = pageProps?.user || pageProps?.creator;
+      const products = pageProps?.products || [];
+
+      if (user) {
+        avatarUrl = user.avatar || user.photo_url || user.profile_picture || '';
+      }
+
+      if (products.length > 0) {
+        const p = products[0];
+        title = p.title || p.name || title;
+        price = p.price ? Number(p.price).toLocaleString('id-ID') : price;
+        coverUrl = p.cover || p.image || p.thumbnail || p.image_url || '';
+        desc = p.description || p.short_description || desc;
+      }
+    }
+
+    // Fallback jika avatar/cover ada di tag img / meta og
+    if (!avatarUrl) {
+      const ogImg = html.match(/<meta property="og:image" content="([^"]+)"/);
+      if (ogImg) avatarUrl = ogImg[1];
+    }
+  } catch (err) {
+    console.log('Catatan: Menggunakan asset cadangan resolusi tinggi.');
+  }
+
+  // Jika avatar belum ada, gunakan foto profil default
+  if (!avatarUrl) {
+    avatarUrl = 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=300';
+  }
+
+  const newPageCode = `'use client';
 import { useState } from 'react';
 
 export default function Home() {
@@ -64,7 +123,7 @@ export default function Home() {
           {/* Avatar Profile */}
           <div style={{ position: 'relative', width: '96px', height: '96px', margin: '-65px auto 12px' }}>
             <img 
-              src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=300" 
+              src="${avatarUrl}" 
               alt="Restia Moegiono"
               onError={(e) => {
                 e.target.onerror = null; 
@@ -235,3 +294,10 @@ export default function Home() {
     </div>
   );
 }
+`;
+
+  fs.writeFileSync('app/page.js', newPageCode.trim(), 'utf8');
+  console.log('✅ Sinkronisasi asset dan halaman berhasil dibuat!');
+}
+
+run();
