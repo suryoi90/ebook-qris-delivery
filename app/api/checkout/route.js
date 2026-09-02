@@ -10,7 +10,7 @@ export async function POST(request) {
       .replace(/[\[\]\(\)]/g, '')
       .substring(0, 45);
 
-    const serverKey = Buffer.from('TWlkLXNlcnZlci1JcnhSWnlycTIwREYtSUFKX0xIMnFnUG8=', 'base64').toString('utf8');
+    const serverKey = Buffer.from('TWlkLXNlcnZlci0weVUxNnhpX1hfQzNVaGkyN3M0MGtmNHc=', 'base64').toString('utf8');
     const authHeader = Buffer.from(serverKey + ':').toString('base64');
 
     const payload = {

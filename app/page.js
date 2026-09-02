@@ -76,7 +76,7 @@ export default function Home() {
   const [freeModal, setFreeModal] = useState(null);
 
   useEffect(() => {
-    const clientKey = Buffer.from('TWlkLWNsaWVudC10M05ieHU2bGdfdTY4VHVz', 'base64').toString('utf8');
+    const clientKey = Buffer.from('TWlkLWNsaWVudC03R1U2N3lJVF9Yam5aazg4', 'base64').toString('utf8');
     const script = document.createElement('script');
     script.src = 'https://app.sandbox.midtrans.com/snap/snap.js';
     script.setAttribute('data-client-key', clientKey);
