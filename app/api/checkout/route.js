@@ -6,12 +6,11 @@ export async function POST(request) {
     const orderId = 'EBOOK-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
     const grossAmount = Number(amount) || 50000;
 
-    // Bersihkan karakter khusus pada nama produk untuk Midtrans
     const cleanProductName = (productTitle || 'E-Book')
       .replace(/[\[\]\(\)]/g, '')
       .substring(0, 45);
 
-    const serverKey = Buffer.from('TWlkLXNlcnZlci1TSnRVaWRta093VUxFbjJsZWdWVnBtbVc=', 'base64').toString('utf8');
+    const serverKey = Buffer.from('TWlkLXNlcnZlci1TSnRUaWRta093VUxFbjJsZWdWVnBtbVc=', 'base64').toString('utf8');
     const authHeader = Buffer.from(serverKey + ':').toString('base64');
 
     const payload = {
@@ -36,9 +35,7 @@ export async function POST(request) {
       custom_field3: organisasi || '-',
     };
 
-    const snapUrl = 'https://app.midtrans.com/snap/v1/transactions';
-
-    const res = await fetch(snapUrl, {
+    const res = await fetch('https://app.midtrans.com/snap/v1/transactions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
