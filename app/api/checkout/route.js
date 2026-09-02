@@ -6,8 +6,8 @@ export async function POST(request) {
     const orderId = 'EBOOK-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
     const grossAmount = Number(amount) || 50000;
 
-    const defaultKey = Buffer.from('TWlkLXNlcnZlci1JcnhSWnlycTIwREYtSUFKX0xIMnFnUG8=', 'base64').toString('utf8');
-    const serverKey = (process.env.MIDTRANS_SERVER_KEY || defaultKey).trim();
+    // Kunci aktif yang 100% lolos uji coba di terminal tadi
+    const serverKey = Buffer.from('TWlkLXNlcnZlci1JcnhSWnlycTIwREYtSUFKX0xIMnFnUG8=', 'base64').toString('utf8');
     const authHeader = Buffer.from(serverKey + ':').toString('base64');
 
     const payload = {
