@@ -75,11 +75,10 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [freeModal, setFreeModal] = useState(null);
 
-  // Load Midtrans SDK secara dinamis & aman
   useEffect(() => {
-    const clientKey = Buffer.from('TWlkLWNsaWVudC10M05ieHU2bGdfdTY4VHVz', 'base64').toString('utf8');
+    const clientKey = Buffer.from('TWlkLWNsaWVudC1iTWRoTTdlS05LLWtxc1hw', 'base64').toString('utf8');
     const script = document.createElement('script');
-    script.src = 'https://app.sandbox.midtrans.com/snap/snap.js';
+    script.src = 'https://app.midtrans.com/snap/snap.js';
     script.setAttribute('data-client-key', clientKey);
     script.async = true;
     document.body.appendChild(script);
@@ -147,7 +146,6 @@ export default function Home() {
 
         {/* HEADER PROFIL */}
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-          
           <div style={{ width: '92px', height: '92px', borderRadius: '50%', backgroundColor: '#ffffff', margin: '0 auto 14px', overflow: 'hidden', border: '2px solid rgba(255,255,255,0.2)', boxShadow: '0 4px 16px rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <svg width="84" height="84" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
               <circle cx="50" cy="50" r="48" fill="#F8FAFC"/>
@@ -175,7 +173,6 @@ export default function Home() {
               <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
             </svg>
           </a>
-
         </div>
 
         {/* 5 E-BOOK UTAMA */}
@@ -299,7 +296,7 @@ export default function Home() {
           ))}
         </div>
 
-        {/* MODAL CHECKOUT INFORMASI PEMBELI */}
+        {/* MODAL CHECKOUT */}
         {selectedProduct && (
           <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px', zIndex: 9999 }}>
             <div style={{ backgroundColor: '#ffffff', borderRadius: '24px', maxWidth: '440px', width: '100%', padding: '24px', color: '#0f172a', position: 'relative' }}>
@@ -352,7 +349,7 @@ export default function Home() {
           </div>
         )}
 
-        {/* MODAL DOWNLOAD FREE */}
+        {/* MODAL FREE */}
         {freeModal && (
           <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px', zIndex: 9999 }}>
             <div style={{ backgroundColor: '#ffffff', borderRadius: '20px', maxWidth: '400px', width: '100%', padding: '24px', color: '#0f172a', textAlign: 'center' }}>
