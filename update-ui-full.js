@@ -1,4 +1,6 @@
-'use client';
+const fs = require('fs');
+
+const pageContent = `'use client';
 import { useState } from 'react';
 
 export default function Home() {
@@ -227,4 +229,7 @@ export default function Home() {
       </main>
     </div>
   );
-}
+}`;
+
+fs.writeFileSync('app/page.js', pageContent.trim(), 'utf8');
+console.log('✅ Desain Lynk.id premium berhasil dibuat!');
