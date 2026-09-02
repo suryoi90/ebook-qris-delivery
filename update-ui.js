@@ -1,4 +1,6 @@
-'use client';
+const fs = require('fs');
+
+const pageCode = `'use client';
 import { useState } from 'react';
 
 export default function Home() {
@@ -147,4 +149,7 @@ export default function Home() {
       </div>
     </div>
   );
-}
+}`;
+
+fs.writeFileSync('app/page.js', pageCode.trim(), 'utf8');
+console.log('✅ Halaman Lynk.id style siap di-deploy!');

@@ -1,4 +1,6 @@
-import { NextResponse } from 'next/server';
+const fs = require('fs');
+
+const checkoutCode = `import { NextResponse } from 'next/server';
 
 export async function POST(request) {
   try {
@@ -62,4 +64,7 @@ export async function POST(request) {
   } catch (error) {
     return NextResponse.json({ success: false, message: error.message }, { status: 500 });
   }
-}
+}`;
+
+fs.writeFileSync('app/api/checkout/route.js', checkoutCode.trim(), 'utf8');
+console.log('✅ Checkout route berhasil dioptimalkan!');
