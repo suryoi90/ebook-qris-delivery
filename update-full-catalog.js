@@ -1,4 +1,6 @@
-'use client';
+const fs = require('fs');
+
+const pageCode = `'use client';
 import { useState } from 'react';
 
 // 5 E-Book Utama (Kartu Besar)
@@ -377,3 +379,7 @@ export default function Home() {
     </div>
   );
 }
+`;
+
+fs.writeFileSync('app/page.js', pageCode.trim(), 'utf8');
+console.log('✅ Seluruh Katalog Lynk.id 100% Persis Berhasil Diperbarui!');
