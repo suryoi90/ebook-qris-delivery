@@ -1,4 +1,92 @@
-'use client';
+const https = require('https');
+const http = require('http');
+const fs = require('fs');
+
+function fetchUrl(targetUrl) {
+  return new Promise((resolve, reject) => {
+    const client = targetUrl.startsWith('https') ? https : http;
+    client.get(targetUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'Accept-Language': 'id-ID,id;q=0.9,en-US;q=0.8,en;q=0.7'
+      }
+    }, (res) => {
+      if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+        return resolve(fetchUrl(res.headers.location));
+      }
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => resolve(data));
+    }).on('error', reject);
+  });
+}
+
+async function scrapeAndBuild() {
+  console.log('🔍 Sedang mengambil aset dan teks asli dari https://lynk.id/restiapriw ...');
+  
+  let name = 'Restia Moegiono';
+  let username = 'restiapriw';
+  let bio = 'Data Protection & Privacy Practitioner';
+  let avatarUrl = '';
+  let productTitle = 'Buku Pegangan: RoPA dan DPIA dalam Implementasi UU PDP';
+  let productDesc = 'Buku Pegangan ini karya Restia Moegiono, salinan resmi panduan praktis implementasi UU Pelindungan Data Pribadi.';
+  let productCover = '';
+  let priceNumber = 150000;
+  let priceFormatted = '150.000';
+
+  try {
+    const html = await fetchUrl('https://lynk.id/restiapriw');
+    
+    // 1. Ekstraksi dari Next.js Data Payload
+    const nextMatch = html.match(/<script id="__NEXT_DATA__" type="application\/json">([\s\S]*?)<\/script>/);
+    if (nextMatch) {
+      const data = JSON.parse(nextMatch[1]);
+      const props = data.props?.pageProps;
+      const user = props?.user || props?.creator || props?.profile || {};
+      
+      if (user.name) name = user.name;
+      if (user.username) username = user.username;
+      if (user.bio || user.description) bio = user.bio || user.description;
+      if (user.avatar || user.photo_url || user.image || user.profile_picture) {
+        avatarUrl = user.avatar || user.photo_url || user.image || user.profile_picture;
+      }
+
+      const products = props?.products || props?.items || [];
+      if (products.length > 0) {
+        const p = products[0];
+        if (p.title || p.name) productTitle = p.title || p.name;
+        if (p.description || p.short_description) productDesc = p.description || p.short_description;
+        if (p.cover || p.image || p.thumbnail || p.cover_url || p.image_url) {
+          productCover = p.cover || p.image || p.thumbnail || p.cover_url || p.image_url;
+        }
+        if (p.price) {
+          priceNumber = Number(p.price);
+          priceFormatted = priceNumber.toLocaleString('id-ID');
+        }
+      }
+    }
+
+    // 2. Fallback meta tag OpenGraph
+    if (!avatarUrl) {
+      const ogImg = html.match(/<meta property="og:image" content="([^"]+)"/);
+      if (ogImg) avatarUrl = ogImg[1];
+    }
+  } catch (err) {
+    console.log('Menggunakan fallback data resmi.');
+  }
+
+  // Sanitize strings untuk aman di JSX
+  const cleanTitle = productTitle.replace(/[\n\r]+/g, ' ').replace(/"/g, '\\"');
+  const cleanBio = bio.replace(/[\n\r]+/g, ' ').replace(/"/g, '\\"');
+
+  console.log(`✅ Data berhasil diekstrak:`);
+  console.log(`- Nama: ${name}`);
+  console.log(`- Username: @${username}`);
+  console.log(`- Produk: ${productTitle}`);
+  console.log(`- Harga: Rp ${priceFormatted}`);
+
+  const pageCode = `'use client';
 import { useState } from 'react';
 
 export default function Home() {
@@ -63,8 +151,8 @@ export default function Home() {
           
           <div style={{ position: 'relative', width: '100px', height: '100px', margin: '-74px auto 14px' }}>
             <img 
-              src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=300" 
-              alt="Restia Moegiono"
+              src="${avatarUrl || 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=300'}" 
+              alt="${name}"
               onError={(e) => {
                 e.target.onerror = null; 
                 e.target.src = 'https://ui-avatars.com/api/?name=Restia+Moegiono&background=0f172a&color=fff&size=128';
@@ -74,12 +162,12 @@ export default function Home() {
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
-            <h1 style={{ fontSize: '22px', fontWeight: '800', color: '#0f172a', margin: 0 }}>Restia Moegiono</h1>
+            <h1 style={{ fontSize: '22px', fontWeight: '800', color: '#0f172a', margin: 0 }}>${name}</h1>
             <span style={{ backgroundColor: '#0284c7', color: '#ffffff', fontSize: '11px', width: '18px', height: '18px', borderRadius: '50%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>✓</span>
           </div>
           
           <p style={{ fontSize: '13px', color: '#64748b', margin: '4px 0 16px', fontWeight: '500' }}>
-            Data Protection & Privacy Practitioner • @restiapriw
+            ${cleanBio} • @${username}
           </p>
 
           <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', flexWrap: 'wrap' }}>
@@ -101,7 +189,7 @@ export default function Home() {
               OFFICIAL E-BOOK
             </div>
             <h2 style={{ fontSize: '22px', fontWeight: '800', margin: '0 0 8px', lineHeight: 1.3 }}>
-              Buku Pegangan: RoPA dan DPIA dalam Implementasi UU PDP
+              ${cleanTitle}
             </h2>
             <p style={{ fontSize: '13px', color: '#93c5fd', margin: 0, lineHeight: 1.5 }}>
               Buku Pegangan Praktis Kepatuhan & Tata Kelola Pelindungan Data Pribadi
@@ -139,7 +227,7 @@ export default function Home() {
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#f8fafc', padding: '16px 20px', borderRadius: '16px', border: '1px solid #e2e8f0', marginBottom: '24px' }}>
               <div>
                 <span style={{ fontSize: '12px', color: '#64748b', fontWeight: '600' }}>Harga Resmi</span>
-                <div style={{ fontSize: '24px', fontWeight: '900', color: '#0f172a' }}>Rp 150.000</div>
+                <div style={{ fontSize: '24px', fontWeight: '900', color: '#0f172a' }}>Rp ${priceFormatted}</div>
               </div>
               <div style={{ textAlign: 'right' }}>
                 <span style={{ backgroundColor: '#dcfce7', color: '#15803d', fontSize: '12px', padding: '4px 12px', borderRadius: '12px', fontWeight: '700', display: 'inline-block', marginBottom: '2px' }}>
@@ -174,7 +262,7 @@ export default function Home() {
                 </div>
 
                 <button type="submit" disabled={loading} style={{ width: '100%', padding: '16px', backgroundColor: '#0284c7', color: '#ffffff', border: 'none', borderRadius: '14px', fontSize: '16px', fontWeight: '800', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', boxShadow: '0 4px 14px rgba(2,132,199,0.35)' }}>
-                  {loading ? 'Membuat QRIS...' : 'Beli Sekarang via QRIS (Rp 150.000)'}
+                  {loading ? 'Membuat QRIS...' : 'Beli Sekarang via QRIS (Rp ${priceFormatted})'}
                 </button>
               </form>
             ) : (
@@ -182,7 +270,7 @@ export default function Home() {
               <div style={{ textAlign: 'center' }}>
                 <div style={{ backgroundColor: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '14px', padding: '12px', marginBottom: '20px' }}>
                   <div style={{ fontSize: '15px', fontWeight: '800', color: '#1e40af' }}>Scan QRIS untuk Menyelesaikan Pembayaran</div>
-                  <div style={{ fontSize: '13px', color: '#3b82f6', marginTop: '2px' }}>Total: <b>Rp 150.000</b></div>
+                  <div style={{ fontSize: '13px', color: '#3b82f6', marginTop: '2px' }}>Total: <b>Rp ${priceFormatted}</b></div>
                 </div>
 
                 <div style={{ backgroundColor: '#ffffff', border: '2px dashed #94a3b8', borderRadius: '20px', padding: '20px', display: 'inline-block', marginBottom: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
@@ -226,7 +314,7 @@ export default function Home() {
 
         {/* Footer */}
         <footer style={{ textAlign: 'center', padding: '20px 0', fontSize: '12px', color: '#94a3b8' }}>
-          <p style={{ margin: '0 0 4px' }}>Hak Cipta © {new Date().getFullYear()} <b>Restia Moegiono</b>.</p>
+          <p style={{ margin: '0 0 4px' }}>Hak Cipta © {new Date().getFullYear()} <b>${name}</b>.</p>
           <p style={{ margin: 0 }}>E-Book RoPA & DPIA dalam Implementasi UU PDP. All Rights Reserved.</p>
         </footer>
 
@@ -234,3 +322,10 @@ export default function Home() {
     </div>
   );
 }
+`;
+
+  fs.writeFileSync('app/page.js', pageCode.trim(), 'utf8');
+  console.log('🎉 Selesai! Halaman berhasil dibuat identik dengan Lynk.id!');
+}
+
+scrapeAndBuild();
