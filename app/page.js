@@ -111,28 +111,11 @@ export default function Home() {
       const data = await res.json();
       setLoading(false);
 
-      if (data.token) {
-        if (typeof window !== 'undefined' && window.snap) {
-          window.snap.pay(data.token, {
-            onSuccess: function(result) {
-              alert('Pembayaran Sukses! File E-Book ber-watermark otomatis dikirim ke email Anda.');
-              setSelectedProduct(null);
-            },
-            onPending: function(result) {
-              alert('Menunggu pembayaran diselesaikan...');
-            },
-            onError: function(result) {
-              alert('Pembayaran gagal atau dibatalkan.');
-            },
-            onClose: function() {
-              console.log('Pop-up ditutup.');
-            }
-          });
-        } else if (data.redirect_url) {
-          window.location.href = data.redirect_url;
-        }
+      if (data.paymentUrl) {
+        // Alihkan langsung ke halaman pembayaran resmi DOKU
+        window.location.href = data.paymentUrl;
       } else {
-        alert('Gagal membuat pembayaran: ' + (data.message || JSON.stringify(data)));
+        alert('Gagal membuat pembayaran DOKU: ' + (data.message || JSON.stringify(data)));
       }
     } catch (err) {
       setLoading(false);
