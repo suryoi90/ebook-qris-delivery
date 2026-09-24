@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 const FEATURED_BOOKS = [
   {
@@ -74,19 +74,6 @@ export default function Home() {
   const [form, setForm] = useState({ nama: '', email: '', organisasi: '' });
   const [loading, setLoading] = useState(false);
   const [freeModal, setFreeModal] = useState(null);
-
-  useEffect(() => {
-    const clientKey = Buffer.from('TWlkLWNsaWVudC03R1U2N3lJVF9Yam5aazg4', 'base64').toString('utf8');
-    const script = document.createElement('script');
-    script.src = 'https://app.sandbox.midtrans.com/snap/snap.js';
-    script.setAttribute('data-client-key', clientKey);
-    script.async = true;
-    document.body.appendChild(script);
-
-    return () => {
-      try { document.body.removeChild(script); } catch (e) {}
-    };
-  }, []);
 
   const openCheckout = (item) => {
     setSelectedProduct(item);
@@ -203,8 +190,9 @@ export default function Home() {
                 </div>
                 <div style={{ fontSize: '11px', color: '#0f172a', fontWeight: '700', lineHeight: 1.5 }}>
                   <div>• Ebook berformat PDF.</div>
-                  <div>• Ebook menggunakan watermark (nama, email, organisasi).</div>
-                  <div>• Dikirim melalui email otomatis 1-2 menit.</div>
+                  <div>• Watermark mencantumkan nama dan email pembeli.</div>
+                  <div>• PDF dilindungi password; password dikirim lewat email terpisah.</div>
+                  <div>• Pengiriman otomatis setelah pembayaran terkonfirmasi.</div>
                 </div>
               </div>
 
