@@ -2,6 +2,9 @@ node_modules
 .next
 .env*.local
 .vercel
+.npm-cache/
+.env*
+!.env.example
 setup.js
 .vercel
 .env*
