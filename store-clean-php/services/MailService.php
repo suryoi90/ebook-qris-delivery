@@ -62,7 +62,7 @@ class MailService
             $mail->isHTML(true);
             $mail->Subject = "Pengiriman Dokumen Resmi: {$productTitle}";
             $mail->Body    = self::getEmailTemplate($toName, $productTitle, $invoiceNumber);
-            $mail->AltBody = "Halo {$toName},\n\nTerima kasih telah membeli {$productTitle} (Invoice: {$invoiceNumber}).\nBerkas PDF berlisensi resmi atas nama Anda terlampir pada email ini.\n\nSalam hangat,\nRestia Moegiono Official Store";
+            $mail->AltBody = "DOKUMEN RESMI TERVERIFIKASI\nRestia Moegiono Official Store\nPustaka Keamanan Informasi & Privasi Data Digital\n\nHalo, {$toName}\nTerima kasih atas kepercayaan Anda telah memesan karya e-book karya Restia Moegiono.\n\nNo. Invoice:\t{$invoiceNumber}\nProduk E-Book:\t{$productTitle}\nStatus Pembayaran:\t✓ LUNAS (TERVERIFIKASI)\n\n🔐 Dokumen Lisensi Resmi Telah Dilampirkan: Berkas PDF master e-book telah dipersonalisasi dengan stempel watermark nama, email, dan identitas instansi Anda di setiap halaman. Silakan unduh lampiran pada email ini.\n\nJika Anda memerlukan klarifikasi teknis atau bantuan terkait dokumen ini, Anda dapat membalas email ini secara langsung.\n\nSalam hangat,\nRestia Moegiono & Tim Redaksi\nPraktisi Keamanan Siber dan Pegiat Literasi Digital\n\n© 2026 Restia Moegiono.\nstore.restiamoegiono.com · restiamoegiono.com";
 
             return $mail->send();
         } catch (Exception $e) {
@@ -108,11 +108,11 @@ class MailService
     <div class="header">
       <div class="brand-tag">DOKUMEN RESMI TERVERIFIKASI</div>
       <h1>Restia Moegiono Official Store</h1>
-      <p>Pustaka &amp; Instrumen Kerja Keamanan Siber</p>
+      <p>Pustaka Keamanan Informasi &amp; Privasi Data Digital</p>
     </div>
     <div class="content">
       <div class="greeting">Halo, {$safeName}</div>
-      <p>Terima kasih atas kepercayaan Anda telah memesan karya literasi keamanan siber dan kepatuhan privasi data oleh <b>Restia Moegiono</b>.</p>
+      <p>Terima kasih atas kepercayaan Anda telah memesan karya e-book karya Restia Moegiono.</p>
       
       <div class="order-box">
         <table style="width: 100%; border-collapse: collapse;">
@@ -143,11 +143,11 @@ class MailService
       <p style="margin-top:24px; margin-bottom:0;">
         Salam hangat,<br>
         <strong>Restia Moegiono &amp; Tim Redaksi</strong><br>
-        <span style="font-size:12px; color:#64748b;">Lead Auditor ISO 27001 &amp; Data Protection Consultant</span>
+        <span style="font-size:12px; color:#64748b;">Praktisi Keamanan Siber dan Pegiat Literasi Digital</span>
       </p>
     </div>
     <div class="footer">
-      &copy; 2026 Restia Moegiono. Seluruh Hak Cipta Dilindungi Undang-Undang No. 28/2014.<br>
+      &copy; 2026 Restia Moegiono.<br>
       <a href="https://store.restiamoegiono.com" style="color:#0284c7; text-decoration:none;">store.restiamoegiono.com</a> &middot; <a href="https://restiamoegiono.com" style="color:#0284c7; text-decoration:none;">restiamoegiono.com</a>
     </div>
   </div>

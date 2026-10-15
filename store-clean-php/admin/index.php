@@ -597,42 +597,111 @@ $maskedEmail = substr(ADMIN_EMAIL, 0, 3) . '***@' . explode('@', ADMIN_EMAIL)[1]
       .grid-2col, .grid-3col { grid-template-columns: 1fr; }
     }
 
-    /* Rich Text Quill Styling */
+    /* Rich Text Quill Styling & Executive Theme */
     .editor-toolbar-custom {
       display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
-      margin-bottom: 8px; padding: 6px 12px; background: #f1f5f9; border-radius: 10px; border: 1px solid #e2e8f0;
+      margin-bottom: 8px; padding: 8px 12px; background: #f8fafc; border-radius: 10px; border: 1px solid #e2e8f0;
     }
     .btn-template {
-      padding: 5px 10px; font-size: 11px; font-weight: 700; border-radius: 6px;
+      padding: 6px 11px; font-size: 11px; font-weight: 700; border-radius: 8px;
       border: 1px solid #cbd5e1; background: #ffffff; color: #334155; cursor: pointer;
-      display: inline-flex; align-items: center; gap: 4px; transition: all 0.15s;
+      display: inline-flex; align-items: center; gap: 5px; transition: all 0.15s ease;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
     }
-    .btn-template:hover { background: #e0f2fe; color: #0284c7; border-color: #7dd3fc; }
+    .btn-template:hover {
+      background: #e0f2fe; color: #0284c7; border-color: #7dd3fc;
+      transform: translateY(-1px); box-shadow: 0 2px 6px rgba(2, 132, 199, 0.12);
+    }
 
     .ql-toolbar.ql-snow {
       border-radius: 12px 12px 0 0 !important; border: 1px solid #cbd5e1 !important;
       background: #f8fafc !important; font-family: inherit !important;
+      padding: 8px 10px !important; display: flex; flex-wrap: wrap; gap: 4px;
     }
+    .ql-toolbar.ql-snow .ql-formats {
+      margin-right: 8px !important; margin-bottom: 4px !important;
+    }
+    .ql-toolbar.ql-snow button:hover, 
+    .ql-toolbar.ql-snow button:focus,
+    .ql-toolbar.ql-snow button.ql-active,
+    .ql-toolbar.ql-snow .ql-picker-label:hover,
+    .ql-toolbar.ql-snow .ql-picker-label.ql-active {
+      color: #0284c7 !important; stroke: #0284c7 !important;
+    }
+    .ql-toolbar.ql-snow button:hover .ql-stroke,
+    .ql-toolbar.ql-snow button.ql-active .ql-stroke,
+    .ql-toolbar.ql-snow .ql-picker-label:hover .ql-stroke,
+    .ql-toolbar.ql-snow .ql-picker-label.ql-active .ql-stroke {
+      stroke: #0284c7 !important;
+    }
+    .ql-toolbar.ql-snow button:hover .ql-fill,
+    .ql-toolbar.ql-snow button.ql-active .ql-fill,
+    .ql-toolbar.ql-snow .ql-picker-label:hover .ql-fill,
+    .ql-toolbar.ql-snow .ql-picker-label.ql-active .ql-fill {
+      fill: #0284c7 !important;
+    }
+
     .ql-container.ql-snow {
       border-radius: 0 0 12px 12px !important; border: 1px solid #cbd5e1 !important;
       border-top: none !important; font-family: 'Plus Jakarta Sans', system-ui, sans-serif !important;
-      font-size: 14px !important; line-height: 1.6 !important; min-height: 220px !important; max-height: 340px !important;
-      overflow-y: auto !important;
+      font-size: 14px !important; line-height: 1.7 !important; min-height: 240px !important; max-height: 380px !important;
+      overflow-y: auto !important; background: #ffffff !important;
     }
-    .ql-editor { min-height: 200px; }
-    .raw-html-textarea {
-      width: 100%; min-height: 220px; max-height: 340px; padding: 14px;
-      border: 1px solid #cbd5e1; border-radius: 12px; font-family: 'Courier New', monospace;
-      font-size: 13px; color: #0f172a; line-height: 1.5; outline: none; display: none;
+    .ql-editor {
+      min-height: 220px; padding: 18px 20px !important; color: #1e293b;
+    }
+    .ql-editor.ql-blank::before {
+      color: #94a3b8 !important; font-style: normal !important; left: 20px !important;
     }
 
-    /* Simulators */
-    .sim-card {
-      background: #ffffff; border: 1px solid #e2e8f0; border-radius: 20px;
-      padding: 28px; box-shadow: 0 4px 16px rgba(0,0,0,0.02); margin-bottom: 32px;
+    /* Embedded Media & Elements within Quill Content */
+    .ql-editor img {
+      max-width: 100%; height: auto; border-radius: 10px; margin: 12px auto; display: block;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.06); border: 1px solid #e2e8f0;
     }
+    .ql-editor iframe.ql-video {
+      width: 100%; max-width: 640px; aspect-ratio: 16 / 9; height: auto;
+      border-radius: 12px; margin: 14px auto; display: block; border: 1px solid #e2e8f0;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+    }
+    .ql-editor blockquote {
+      border-left: 4px solid #0284c7 !important; background: #f0f9ff;
+      padding: 12px 18px !important; border-radius: 0 10px 10px 0;
+      color: #0369a1 !important; font-style: italic; margin: 12px 0;
+    }
+    .ql-editor pre.ql-syntax {
+      background: #0f172a !important; color: #f8fafc !important;
+      border-radius: 10px !important; padding: 14px 18px !important;
+      font-family: 'SF Mono', Consolas, Monaco, monospace !important; font-size: 13px !important;
+      line-height: 1.5 !important; overflow-x: auto;
+    }
+    .ql-editor table {
+      width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 13px;
+    }
+    .ql-editor th, .ql-editor td {
+      border: 1px solid #cbd5e1; padding: 8px 12px; text-align: left;
+    }
+    .ql-editor th {
+      background: #f1f5f9; font-weight: 800; color: #0f172a;
+    }
+
+    .raw-html-textarea {
+      width: 100%; min-height: 240px; max-height: 380px; padding: 16px;
+      border: 1px solid #cbd5e1; border-radius: 12px; font-family: 'SF Mono', Consolas, 'Courier New', monospace;
+      font-size: 13px; color: #0f172a; line-height: 1.6; outline: none; display: none;
+      background: #f8fafc;
+    }
+    .raw-html-textarea:focus {
+      border-color: #0284c7; box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15); background: #ffffff;
+    }
+
+    /* Specific Heights for Modals & Hero */
     #quillHeroDescWrapper .ql-container.ql-snow {
       min-height: 120px !important; max-height: 220px !important;
+    }
+    #quillCourseWrapper .ql-container.ql-snow,
+    #quillLmsLessonWrapper .ql-container.ql-snow {
+      min-height: 220px !important; max-height: 340px !important;
     }
     .form-group { margin-bottom: 16px; }
     .form-label { display: block; font-size: 12px; font-weight: 800; color: #475569; margin-bottom: 6px; }
@@ -1638,7 +1707,10 @@ $maskedEmail = substr(ADMIN_EMAIL, 0, 3) . '***@' . explode('@', ADMIN_EMAIL)[1]
               <span style="font-size:11px; font-weight:800; color:#64748b; margin-right:4px;">Sisipkan Template:</span>
               <button type="button" class="btn-template" onclick="insertEditorTemplate('silabus')">📑 Silabus &amp; Bab</button>
               <button type="button" class="btn-template" onclick="insertEditorTemplate('target')">🎯 Target Pembaca</button>
+              <button type="button" class="btn-template" onclick="insertEditorTemplate('callout')">💡 Catatan Penting</button>
+              <button type="button" class="btn-template" onclick="insertEditorTemplate('highlight')">⭐ Nilai Tambah</button>
               <button type="button" class="btn-template" onclick="insertEditorTemplate('instrumen')">🔍 Instrumen Kerja</button>
+              <button type="button" class="btn-template" onclick="insertEditorTemplate('table')">📊 Spesifikasi Buku</button>
               <button type="button" class="btn-template" onclick="insertEditorTemplate('clear')" style="color:#b91c1c;">🧹 Kosongkan</button>
             </div>
 
@@ -1866,15 +1938,41 @@ $maskedEmail = substr(ADMIN_EMAIL, 0, 3) . '***@' . explode('@', ADMIN_EMAIL)[1]
             </div>
           </div>
 
-          <!-- EDITOR CATATAN KULIAH / MATERI -->
+          <!-- EDITOR CATATAN KULIAH / MATERI (WYSIWYG) -->
           <div class="form-group" style="margin-bottom:18px;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-              <label class="form-label" style="margin:0; font-weight:800; color:#0f172a; font-size:13px;">
-                Catatan Kuliah &amp; Materi Bab
-              </label>
+              <div>
+                <label class="form-label" style="margin:0; font-weight:800; color:#0f172a; font-size:13px;">
+                  Catatan Kuliah &amp; Materi Bab (Visual WYSIWYG)
+                </label>
+                <div style="font-size:11px; color:#64748b; margin-top:2px;">Format materi dengan heading, checklist langkah audit, tabel, atau video.</div>
+              </div>
+              <button type="button" id="btnToggleLmsLessonHtml" onclick="toggleLmsLessonHtmlMode()" class="btn-action-sm" style="font-size:11px; padding:4px 10px;">
+                &lt;&sol;&gt; Mode HTML Source
+              </button>
             </div>
-            <div id="quillLmsLessonWrapper" style="border:1px solid #cbd5e1; border-radius:12px; overflow:hidden; background:#ffffff;">
-              <div id="quillLmsLessonEditor" style="min-height:240px; font-size:14px; line-height:1.7;"></div>
+
+            <!-- Quick Templates Bar untuk Materi LMS -->
+            <div class="editor-toolbar-custom">
+              <span style="font-size:11px; font-weight:800; color:#64748b; margin-right:4px;">Sisipkan Template Materi:</span>
+              <button type="button" class="btn-template" onclick="insertLmsLessonTemplate('ringkasan')">📌 Ringkasan &amp; Objektif</button>
+              <button type="button" class="btn-template" onclick="insertLmsLessonTemplate('checklist')">📋 Checklist Implementasi</button>
+              <button type="button" class="btn-template" onclick="insertLmsLessonTemplate('callout')">⚠️ Regulasi &amp; Kepatuhan</button>
+              <button type="button" class="btn-template" onclick="insertLmsLessonTemplate('download')">📥 Kotak Sumber Daya</button>
+              <button type="button" class="btn-template" onclick="insertLmsLessonTemplate('clear')" style="color:#b91c1c;">🧹 Kosongkan</button>
+            </div>
+
+            <!-- Quill Canvas -->
+            <div id="quillLmsLessonWrapper">
+              <div id="quillLmsLessonEditor"></div>
+            </div>
+
+            <!-- Raw HTML Textarea (Toggled) -->
+            <textarea id="rawLmsLessonTextarea" class="raw-html-textarea" placeholder="Kode HTML mentah materi..."></textarea>
+
+            <div style="font-size:11px; color:#64748b; margin-top:6px; display:flex; justify-content:space-between;">
+              <span>Mendukung gambar, tabel checklist, kutipan pedoman ISO, dan format daftar periksa interaktif.</span>
+              <span id="lmsLessonStats">0 karakter</span>
             </div>
             <input type="hidden" id="lmsLessonContentHtml" name="content_html">
           </div>
@@ -1991,9 +2089,42 @@ $maskedEmail = substr(ADMIN_EMAIL, 0, 3) . '***@' . explode('@', ADMIN_EMAIL)[1]
             <textarea id="courseEditInstructorBio" name="instructor_bio" class="form-control" rows="2" placeholder="Praktisi dan konsultan sistem manajemen keamanan informasi..."></textarea>
           </div>
 
-          <div class="form-group" style="margin-bottom:14px;">
-            <label class="form-label">Deskripsi Lengkap / Silabus Program</label>
-            <textarea id="courseEditDescription" name="description" class="form-control" rows="4" placeholder="Penjelasan silabus, capaian pembelajaran, instrumen audit yang didapatkan..."></textarea>
+          <!-- EDITOR DESKRIPSI LENGKAP & SILABUS PROGRAM KURSUS (WYSIWYG) -->
+          <div class="form-group" style="margin-bottom:18px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+              <div>
+                <label class="form-label" style="margin:0; font-weight:800; color:#0f172a; font-size:13px;">
+                  Deskripsi Lengkap &amp; Silabus Program (Visual WYSIWYG)
+                </label>
+                <div style="font-size:11px; color:#64748b; margin-top:2px;">Teks ini ditampilkan di halaman publik /course/slug untuk memikat calon peserta eksekutif.</div>
+              </div>
+              <button type="button" id="btnToggleCourseHtml" onclick="toggleCourseHtmlMode()" class="btn-action-sm" style="font-size:11px; padding:4px 10px;">
+                &lt;&sol;&gt; Mode HTML Source
+              </button>
+            </div>
+
+            <!-- Quick Templates Bar untuk Kursus -->
+            <div class="editor-toolbar-custom">
+              <span style="font-size:11px; font-weight:800; color:#64748b; margin-right:4px;">Sisipkan Template Kursus:</span>
+              <button type="button" class="btn-template" onclick="insertCourseTemplate('silabus')">📑 Silabus &amp; Kurikulum</button>
+              <button type="button" class="btn-template" onclick="insertCourseTemplate('capaian')">🎯 Capaian Kompetensi</button>
+              <button type="button" class="btn-template" onclick="insertCourseTemplate('fasilitas')">🏆 Fasilitas &amp; Sertifikat</button>
+              <button type="button" class="btn-template" onclick="insertCourseTemplate('clear')" style="color:#b91c1c;">🧹 Kosongkan</button>
+            </div>
+
+            <!-- Quill Canvas -->
+            <div id="quillCourseWrapper">
+              <div id="quillCourseEditor"></div>
+            </div>
+
+            <!-- Raw HTML Textarea (Toggled) -->
+            <textarea id="rawCourseTextarea" class="raw-html-textarea" placeholder="Kode HTML mentah deskripsi kursus..."></textarea>
+
+            <div style="font-size:11px; color:#64748b; margin-top:6px; display:flex; justify-content:space-between;">
+              <span>Gunakan format heading, daftar bullet, dan kutipan untuk menguraikan program secara profesional.</span>
+              <span id="courseDescStats">0 karakter</span>
+            </div>
+            <input type="hidden" id="courseEditDescription" name="description">
           </div>
 
           <div class="modal-footer" style="padding:16px 0 0; background:transparent;">
@@ -2018,34 +2149,90 @@ $maskedEmail = substr(ADMIN_EMAIL, 0, 3) . '***@' . explode('@', ADMIN_EMAIL)[1]
     let productQuill = null;
     let heroDescQuill = null;
     let lmsLessonQuill = null;
+    let courseQuill = null;
     let isHtmlMode = false;
     let isHeroDescHtmlMode = false;
+    let isCourseHtmlMode = false;
+    let isLmsLessonHtmlMode = false;
     let isTitleRawMode = false;
 
-    // Inisialisasi Quill Editor (Produk, Hero Description, & Materi LMS)
+    // Standard Full-Featured Executive WYSIWYG Toolbar
+    const QUILL_FULL_TOOLBAR = [
+      [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+      [{ 'size': ['small', false, 'large', 'huge'] }],
+      ['bold', 'italic', 'underline', 'strike'],
+      [{ 'color': [] }, { 'background': [] }],
+      [{ 'script': 'sub' }, { 'script': 'super' }],
+      ['blockquote', 'code-block'],
+      [{ 'list': 'ordered' }, { 'list': 'bullet' }, { 'list': 'check' }],
+      [{ 'indent': '-1' }, { 'indent': '+1' }],
+      [{ 'align': [] }],
+      ['link', 'image', 'video'],
+      ['clean']
+    ];
+
+    // Helper: Hitung statistik karakter, kata, dan waktu baca
+    function updateEditorStats(quill, statsElId) {
+      if (!quill) return;
+      const text = quill.getText().trim();
+      const chars = text.length;
+      const words = text ? text.split(/\s+/).filter(Boolean).length : 0;
+      const readTime = Math.max(1, Math.ceil(words / 150));
+      const el = document.getElementById(statsElId);
+      if (el) {
+        el.innerText = `${chars.toLocaleString('id-ID')} karakter • ${words.toLocaleString('id-ID')} kata • ~${readTime} mnt baca`;
+      }
+    }
+
+    // Helper: Handler unggah gambar kustom untuk Quill (File upload atau URL)
+    function setupQuillImageHandler(quillInstance) {
+      if (!quillInstance) return;
+      const toolbar = quillInstance.getModule('toolbar');
+      if (!toolbar) return;
+      toolbar.addHandler('image', function() {
+        const choice = prompt('Pilihan Sisipkan Gambar:\n1. Ketik "upload" untuk memilih berkas gambar dari komputer\n2. Atau masukkan tautan URL gambar (https://...):', 'upload');
+        if (!choice) return;
+        if (choice.trim().toLowerCase() === 'upload') {
+          const fileInput = document.createElement('input');
+          fileInput.setAttribute('type', 'file');
+          fileInput.setAttribute('accept', 'image/png, image/jpeg, image/webp, image/gif');
+          fileInput.click();
+          fileInput.onchange = () => {
+            const file = fileInput.files[0];
+            if (file) {
+              const reader = new FileReader();
+              reader.onload = (e) => {
+                const range = quillInstance.getSelection(true) || { index: quillInstance.getLength() };
+                quillInstance.insertEmbed(range.index, 'image', e.target.result, 'user');
+                quillInstance.setSelection(range.index + 1);
+              };
+              reader.readAsDataURL(file);
+            }
+          };
+        } else {
+          const range = quillInstance.getSelection(true) || { index: quillInstance.getLength() };
+          quillInstance.insertEmbed(range.index, 'image', choice.trim(), 'user');
+          quillInstance.setSelection(range.index + 1);
+        }
+      });
+    }
+
+    // Inisialisasi Seluruh Editor Visual WYSIWYG
     function initQuill() {
-      // 1. Editor Deskripsi Produk
+      // 1. Editor Deskripsi Produk E-Book
       if (!productQuill) {
         const el = document.getElementById('quillProductEditor');
         if (el && typeof Quill !== 'undefined') {
           productQuill = new Quill('#quillProductEditor', {
             theme: 'snow',
-            placeholder: 'Tuliskan deskripsi lengkap, silabus, dan nilai tambah e-book di sini...',
-            modules: {
-              toolbar: [
-                [{ 'header': [2, 3, 4, false] }],
-                ['bold', 'italic', 'underline', 'strike'],
-                ['blockquote'],
-                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                [{ 'align': [] }],
-                ['link', 'clean']
-              ]
-            }
+            placeholder: 'Tuliskan deskripsi lengkap, silabus, instrumen kerja, dan nilai tambah e-book di sini...',
+            modules: { toolbar: QUILL_FULL_TOOLBAR }
           });
-
+          setupQuillImageHandler(productQuill);
           productQuill.on('text-change', function() {
-            const text = productQuill.getText().trim();
-            document.getElementById('editorStats').innerText = text.length + ' karakter';
+            updateEditorStats(productQuill, 'editorStats');
+            const raw = document.getElementById('rawHtmlTextarea');
+            if (raw && !isHtmlMode) raw.value = productQuill.root.innerHTML;
           });
         }
       }
@@ -2060,12 +2247,12 @@ $maskedEmail = substr(ADMIN_EMAIL, 0, 3) . '***@' . explode('@', ADMIN_EMAIL)[1]
             modules: {
               toolbar: [
                 ['bold', 'italic', 'underline'],
+                [{ 'color': [] }, { 'background': [] }],
                 [{ 'list': 'bullet' }],
                 ['link', 'clean']
               ]
             }
           });
-
           heroDescQuill.on('text-change', function() {
             syncHeroDescTextarea();
             const text = heroDescQuill.getText().trim();
@@ -2081,16 +2268,32 @@ $maskedEmail = substr(ADMIN_EMAIL, 0, 3) . '***@' . explode('@', ADMIN_EMAIL)[1]
         if (lEl && typeof Quill !== 'undefined') {
           lmsLessonQuill = new Quill('#quillLmsLessonEditor', {
             theme: 'snow',
-            placeholder: 'Tuliskan catatan kuliah, ringkasan materi, pedoman implementasi, dan checklist bab ini...',
-            modules: {
-              toolbar: [
-                [{ 'header': [2, 3, 4, false] }],
-                ['bold', 'italic', 'underline', 'strike'],
-                ['blockquote', 'code-block'],
-                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                ['link', 'clean']
-              ]
-            }
+            placeholder: 'Tuliskan catatan kuliah, ringkasan materi, pedoman implementasi ISO, dan checklist bab ini...',
+            modules: { toolbar: QUILL_FULL_TOOLBAR }
+          });
+          setupQuillImageHandler(lmsLessonQuill);
+          lmsLessonQuill.on('text-change', function() {
+            updateEditorStats(lmsLessonQuill, 'lmsLessonStats');
+            const raw = document.getElementById('rawLmsLessonTextarea');
+            if (raw && !isLmsLessonHtmlMode) raw.value = lmsLessonQuill.root.innerHTML;
+          });
+        }
+      }
+
+      // 4. Editor Deskripsi Program Kursus LMS (WYSIWYG)
+      if (!courseQuill) {
+        const cEl = document.getElementById('quillCourseEditor');
+        if (cEl && typeof Quill !== 'undefined') {
+          courseQuill = new Quill('#quillCourseEditor', {
+            theme: 'snow',
+            placeholder: 'Tuliskan uraian program kursus, modul pembelajaran, kompetensi lulusan, dan fasilitas sertifikasi...',
+            modules: { toolbar: QUILL_FULL_TOOLBAR }
+          });
+          setupQuillImageHandler(courseQuill);
+          courseQuill.on('text-change', function() {
+            updateEditorStats(courseQuill, 'courseDescStats');
+            const raw = document.getElementById('rawCourseTextarea');
+            if (raw && !isCourseHtmlMode) raw.value = courseQuill.root.innerHTML;
           });
         }
       }
@@ -2836,9 +3039,14 @@ $maskedEmail = substr(ADMIN_EMAIL, 0, 3) . '***@' . explode('@', ADMIN_EMAIL)[1]
         document.getElementById('lmsLessonAttachmentName').value = l.attachment_name || '';
         document.getElementById('lmsLessonAttachmentUrl').value = l.attachment_url || '';
 
+        const lessonContent = l.content_html || '';
         if (lmsLessonQuill) {
-          lmsLessonQuill.root.innerHTML = l.content_html || '';
+          lmsLessonQuill.root.innerHTML = lessonContent;
+          updateEditorStats(lmsLessonQuill, 'lmsLessonStats');
         }
+        const rawLmsEl = document.getElementById('rawLmsLessonTextarea');
+        if (rawLmsEl) rawLmsEl.value = lessonContent;
+        if (isLmsLessonHtmlMode) toggleLmsLessonHtmlMode();
         titleEl.innerText = 'Edit Materi Bab: ' + l.title;
       } else {
         document.getElementById('lmsLessonId').value = '0';
@@ -2852,9 +3060,14 @@ $maskedEmail = substr(ADMIN_EMAIL, 0, 3) . '***@' . explode('@', ADMIN_EMAIL)[1]
         document.getElementById('lmsLessonAttachmentName').value = '';
         document.getElementById('lmsLessonAttachmentUrl').value = '';
 
+        const defLessonHtml = '<p>Tuliskan ringkasan materi, checklist, dan panduan belajar bab ini...</p>';
         if (lmsLessonQuill) {
-          lmsLessonQuill.root.innerHTML = '<p>Tuliskan ringkasan materi, checklist, dan panduan belajar bab ini...</p>';
+          lmsLessonQuill.root.innerHTML = defLessonHtml;
+          updateEditorStats(lmsLessonQuill, 'lmsLessonStats');
         }
+        const rawLmsEl = document.getElementById('rawLmsLessonTextarea');
+        if (rawLmsEl) rawLmsEl.value = defLessonHtml;
+        if (isLmsLessonHtmlMode) toggleLmsLessonHtmlMode();
         titleEl.innerText = 'Tambah Bab / Materi Pelatihan Baru';
       }
 
@@ -2874,9 +3087,10 @@ $maskedEmail = substr(ADMIN_EMAIL, 0, 3) . '***@' . explode('@', ADMIN_EMAIL)[1]
 
       const formData = new FormData(document.getElementById('lmsLessonForm'));
       formData.append('action', 'save_lms_lesson');
-      if (lmsLessonQuill) {
-        formData.set('content_html', lmsLessonQuill.root.innerHTML);
-      }
+      const contentHtml = isLmsLessonHtmlMode 
+        ? document.getElementById('rawLmsLessonTextarea').value 
+        : (lmsLessonQuill ? lmsLessonQuill.root.innerHTML : (document.getElementById('rawLmsLessonTextarea')?.value || ''));
+      formData.set('content_html', contentHtml);
 
       try {
         const res = await fetch('/api/admin-action.php', {
@@ -3252,8 +3466,7 @@ $maskedEmail = substr(ADMIN_EMAIL, 0, 3) . '***@' . explode('@', ADMIN_EMAIL)[1]
       const descHtml = (!isNew && p.description) ? p.description : '';
       if (productQuill) {
         productQuill.root.innerHTML = descHtml;
-        const textLen = productQuill.getText().trim().length;
-        document.getElementById('editorStats').innerText = textLen + ' karakter';
+        updateEditorStats(productQuill, 'editorStats');
       }
       document.getElementById('rawHtmlTextarea').value = descHtml;
 
@@ -3348,9 +3561,10 @@ $maskedEmail = substr(ADMIN_EMAIL, 0, 3) . '***@' . explode('@', ADMIN_EMAIL)[1]
       if (!productQuill) return;
 
       if (type === 'clear') {
-        if (confirm('Kosongkan konten editor ini?')) {
+        if (confirm('Kosongkan konten editor e-book ini?')) {
           productQuill.root.innerHTML = '';
           document.getElementById('rawHtmlTextarea').value = '';
+          updateEditorStats(productQuill, 'editorStats');
         }
         return;
       }
@@ -3358,28 +3572,74 @@ $maskedEmail = substr(ADMIN_EMAIL, 0, 3) . '***@' . explode('@', ADMIN_EMAIL)[1]
       let templateHtml = '';
       if (type === 'silabus') {
         templateHtml = `
-          <h3>Ringkasan Silabus &amp; Bab Pembahasan:</h3>
+          <h3 style="color:#0f172a; margin-top:16px;">Ringkasan Silabus &amp; Bab Pembahasan:</h3>
           <ul>
-            <li><strong>Bab 1:</strong> Konteks Tata Kelola &amp; Landasan Regulasi Nasional</li>
-            <li><strong>Bab 2:</strong> Analisis Kesenjangan (Gap Analysis) &amp; Penilaian Risiko</li>
-            <li><strong>Bab 3:</strong> Langkah Praktis Implementasi &amp; Standard Operating Procedure (SOP)</li>
-            <li><strong>Bab 4:</strong> Mekanisme Audit Internal, Monitoring &amp; Evaluasi Kepatuhan</li>
+            <li><strong>Bab 1:</strong> Konteks Tata Kelola &amp; Landasan Regulasi Nasional (UU PDP &amp; Standar BSSN)</li>
+            <li><strong>Bab 2:</strong> Analisis Kesenjangan (Gap Analysis) &amp; Penilaian Risiko Keamanan Siber</li>
+            <li><strong>Bab 3:</strong> Langkah Praktis Implementasi &amp; Standard Operating Procedure (SOP) Organisasi</li>
+            <li><strong>Bab 4:</strong> Mekanisme Audit Internal, Monitoring &amp; Evaluasi Kepatuhan Sistem Manajemen</li>
           </ul>
         `;
       } else if (type === 'target') {
         templateHtml = `
-          <h3>Siapa yang Wajib Memiliki E-Book Ini?</h3>
+          <h3 style="color:#0f172a; margin-top:16px;">Siapa yang Wajib Memiliki Dokumen Ini?</h3>
           <ul>
-            <li>CISO, IT Security Officer, dan Tim Information Security Korporasi</li>
-            <li>Data Protection Officer (DPO) &amp; Compliance / Legal Counsel</li>
-            <li>Auditor Internal, Konsultan Teknologi, dan Penilai Independen</li>
+            <li><strong>CISO &amp; Information Security Officer:</strong> Acuan arsitektur keamanan informasi korporasi.</li>
+            <li><strong>Data Protection Officer (DPO) &amp; Legal:</strong> Memastikan kepatuhan data pribadi dan mitigasi sanksi regulasi.</li>
+            <li><strong>Auditor Internal &amp; Konsultan TI:</strong> Panduan langkah demi langkah saat melakukan audit kepatuhan.</li>
+          </ul>
+        `;
+      } else if (type === 'callout') {
+        templateHtml = `
+          <blockquote style="border-left:4px solid #0284c7; background:#f0f9ff; padding:14px 18px; border-radius:0 10px 10px 0; color:#0369a1; margin:16px 0;">
+            <strong>💡 Catatan Penting Auditor:</strong>
+            Dokumen ini dirancang mengacu pada standar internasional terkini dan telah teruji di berbagai implementasi industri perbankan, telekomunikasi, dan instansi publik.
+          </blockquote>
+        `;
+      } else if (type === 'highlight') {
+        templateHtml = `
+          <h3 style="color:#0f172a; margin-top:16px;">Nilai Tambah &amp; Keunggulan Dokumen:</h3>
+          <ul>
+            <li>✅ <strong>100% Praktis &amp; Terstruktur:</strong> Tidak sekadar teori, dilengkapi contoh kasus implementasi nyata di Indonesia.</li>
+            <li>✅ <strong>Siap Eksekusi (Ready-to-Use):</strong> Dilengkapi template formulir dan matriks yang dapat langsung diadopsi.</li>
+            <li>✅ <strong>Lisensi Resmi Terverifikasi:</strong> Berkas PDF master dipersonalisasi dengan stempel DRM resmi atas nama Anda.</li>
           </ul>
         `;
       } else if (type === 'instrumen') {
         templateHtml = `
-          <blockquote>
-            <strong>Bonus Instrumen Kerja:</strong> Pembelian dokumen ini dilengkapi dengan matriks checklist siap pakai, lembar kerja penilaian mandiri, dan format pelaporan resmi yang dapat disesuaikan langsung dengan kebutuhan instansi Anda.
+          <blockquote style="border-left:4px solid #059669; background:#ecfdf5; padding:14px 18px; border-radius:0 10px 10px 0; color:#065f46; margin:16px 0;">
+            <strong>🔍 Bonus Paket Instrumen Kerja:</strong> Pembelian dokumen ini dilengkapi dengan matriks penilaian mandiri (Self-Assessment Sheet), checklist audit kepatuhan, dan format pelaporan resmi yang dapat disesuaikan langsung dengan kebutuhan instansi Anda.
           </blockquote>
+        `;
+      } else if (type === 'table') {
+        templateHtml = `
+          <h3 style="color:#0f172a; margin-top:16px;">Spesifikasi Dokumen Digital:</h3>
+          <table style="width:100%; border-collapse:collapse; margin:12px 0;">
+            <thead>
+              <tr style="background:#f1f5f9;">
+                <th style="border:1px solid #cbd5e1; padding:8px 12px; text-align:left;">Parameter</th>
+                <th style="border:1px solid #cbd5e1; padding:8px 12px; text-align:left;">Keterangan Resmi</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="border:1px solid #cbd5e1; padding:8px 12px; font-weight:700;">Format Berkas</td>
+                <td style="border:1px solid #cbd5e1; padding:8px 12px;">PDF Digital (DRM Watermark Personal)</td>
+              </tr>
+              <tr>
+                <td style="border:1px solid #cbd5e1; padding:8px 12px; font-weight:700;">Bahasa</td>
+                <td style="border:1px solid #cbd5e1; padding:8px 12px;">Bahasa Indonesia (Standar Eksekutif)</td>
+              </tr>
+              <tr>
+                <td style="border:1px solid #cbd5e1; padding:8px 12px; font-weight:700;">Pembaruan</td>
+                <td style="border:1px solid #cbd5e1; padding:8px 12px;">Edisi Revisi 2026 (Terbaru)</td>
+              </tr>
+              <tr>
+                <td style="border:1px solid #cbd5e1; padding:8px 12px; font-weight:700;">Hak Penggunaan</td>
+                <td style="border:1px solid #cbd5e1; padding:8px 12px;">Lisensi Tunggal Instansi &amp; Pribadi</td>
+              </tr>
+            </tbody>
+          </table>
         `;
       }
 
@@ -3388,6 +3648,175 @@ $maskedEmail = substr(ADMIN_EMAIL, 0, 3) . '***@' . explode('@', ADMIN_EMAIL)[1]
       } else {
         const cur = productQuill.root.innerHTML;
         productQuill.root.innerHTML = cur + templateHtml;
+        updateEditorStats(productQuill, 'editorStats');
+      }
+    }
+
+    // Toggle HTML Source Mode untuk Program Kursus LMS
+    function toggleCourseHtmlMode() {
+      const qWrap = document.getElementById('quillCourseWrapper');
+      const rawText = document.getElementById('rawCourseTextarea');
+      const btn = document.getElementById('btnToggleCourseHtml');
+
+      if (!isCourseHtmlMode) {
+        const html = courseQuill ? courseQuill.root.innerHTML : '';
+        rawText.value = html;
+        qWrap.style.display = 'none';
+        rawText.style.display = 'block';
+        btn.innerText = '👁️ Mode Visual Editor';
+        btn.style.background = '#e0f2fe';
+        btn.style.color = '#0284c7';
+        isCourseHtmlMode = true;
+      } else {
+        const html = rawText.value;
+        if (courseQuill) {
+          courseQuill.root.innerHTML = html;
+          updateEditorStats(courseQuill, 'courseDescStats');
+        }
+        rawText.style.display = 'none';
+        qWrap.style.display = 'block';
+        btn.innerText = '</> Mode HTML Source';
+        btn.style.background = '#f8fafc';
+        btn.style.color = 'inherit';
+        isCourseHtmlMode = false;
+      }
+    }
+
+    // Template Bar untuk Program Kursus LMS
+    function insertCourseTemplate(type) {
+      if (!courseQuill) return;
+
+      if (type === 'clear') {
+        if (confirm('Kosongkan uraian deskripsi kursus ini?')) {
+          courseQuill.root.innerHTML = '';
+          document.getElementById('rawCourseTextarea').value = '';
+          updateEditorStats(courseQuill, 'courseDescStats');
+        }
+        return;
+      }
+
+      let templateHtml = '';
+      if (type === 'silabus') {
+        templateHtml = `
+          <h3 style="color:#0f172a; margin-top:16px;">Rancangan Kurikulum &amp; Pembahasan:</h3>
+          <ul>
+            <li><strong>Modul 1:</strong> Fondasi Tata Kelola Keamanan Informasi &amp; Paradigma Standar ISO 27001:2022</li>
+            <li><strong>Modul 2:</strong> Eksekusi Klausul 4 hingga 10 (Perencanaan, Operasi, dan Evaluasi PDCA)</li>
+            <li><strong>Modul 3:</strong> Penerapan 93 Kontrol Pengamanan Annex A (Organisasional, Fisik, Personel, Teknologi)</li>
+            <li><strong>Modul 4:</strong> Metodologi Audit Sertifikasi, Penyusunan Statement of Applicability (SoA) &amp; Temuan</li>
+          </ul>
+        `;
+      } else if (type === 'capaian') {
+        templateHtml = `
+          <h3 style="color:#0f172a; margin-top:16px;">Kompetensi Utama Lulusan:</h3>
+          <ul>
+            <li>🎯 Mampu menyusun dokumen kebijakan dan prosedur ISMS terstandar internasional dari nol.</li>
+            <li>🎯 Menguasai teknik risk assessment kuantitatif dan kualitatif sesuai ISO 27005.</li>
+            <li>🎯 Memiliki kapabilitas praktis sebagai Lead Auditor dalam menginspeksi kepatuhan sistem.</li>
+          </ul>
+        `;
+      } else if (type === 'fasilitas') {
+        templateHtml = `
+          <blockquote style="border-left:4px solid #0284c7; background:#f0f9ff; padding:14px 18px; border-radius:0 10px 10px 0; color:#0369a1; margin:16px 0;">
+            <strong>🏆 Fasilitas Eksklusif Peserta:</strong> Sertifikat Resmi Kelulusan Digital terverifikasi QR-Code, akses seumur hidup ke rekaman materi HD, forum diskusi privat bersama Restia Moegiono, dan unduhan bundel instrumen kerja audit.
+          </blockquote>
+        `;
+      }
+
+      if (isCourseHtmlMode) {
+        document.getElementById('rawCourseTextarea').value += "\n" + templateHtml;
+      } else {
+        const cur = courseQuill.root.innerHTML;
+        courseQuill.root.innerHTML = cur + templateHtml;
+        updateEditorStats(courseQuill, 'courseDescStats');
+      }
+    }
+
+    // Toggle HTML Source Mode untuk Materi Bab LMS
+    function toggleLmsLessonHtmlMode() {
+      const qWrap = document.getElementById('quillLmsLessonWrapper');
+      const rawText = document.getElementById('rawLmsLessonTextarea');
+      const btn = document.getElementById('btnToggleLmsLessonHtml');
+
+      if (!isLmsLessonHtmlMode) {
+        const html = lmsLessonQuill ? lmsLessonQuill.root.innerHTML : '';
+        rawText.value = html;
+        qWrap.style.display = 'none';
+        rawText.style.display = 'block';
+        btn.innerText = '👁️ Mode Visual Editor';
+        btn.style.background = '#e0f2fe';
+        btn.style.color = '#0284c7';
+        isLmsLessonHtmlMode = true;
+      } else {
+        const html = rawText.value;
+        if (lmsLessonQuill) {
+          lmsLessonQuill.root.innerHTML = html;
+          updateEditorStats(lmsLessonQuill, 'lmsLessonStats');
+        }
+        rawText.style.display = 'none';
+        qWrap.style.display = 'block';
+        btn.innerText = '</> Mode HTML Source';
+        btn.style.background = '#f8fafc';
+        btn.style.color = 'inherit';
+        isLmsLessonHtmlMode = false;
+      }
+    }
+
+    // Template Bar untuk Materi Bab LMS
+    function insertLmsLessonTemplate(type) {
+      if (!lmsLessonQuill) return;
+
+      if (type === 'clear') {
+        if (confirm('Kosongkan catatan materi bab ini?')) {
+          lmsLessonQuill.root.innerHTML = '';
+          document.getElementById('rawLmsLessonTextarea').value = '';
+          updateEditorStats(lmsLessonQuill, 'lmsLessonStats');
+        }
+        return;
+      }
+
+      let templateHtml = '';
+      if (type === 'ringkasan') {
+        templateHtml = `
+          <h3 style="color:#0f172a; margin-top:14px;">📌 Ringkasan Pokok Pembahasan:</h3>
+          <p>Pada sesi ini, kita membedah mekanisme implementasi secara praktis sesuai pedoman kepatuhan dan tata kelola internasional.</p>
+          <ul>
+            <li><strong>Tujuan Utama:</strong> Memahami implementasi klausul dan kontrol yang relevan.</li>
+            <li><strong>Parameter Kunci:</strong> Pengukuran efektivitas kontrol dan kriteria bukti audit (audit trail).</li>
+          </ul>
+        `;
+      } else if (type === 'checklist') {
+        templateHtml = `
+          <h3 style="color:#0f172a; margin-top:14px;">📋 Checklist Langkah Kerja Praktis:</h3>
+          <ul data-list="check">
+            <li data-list="unchecked">Tentukan ruang lingkup dan batasan aset informasi yang diaudit.</li>
+            <li data-list="unchecked">Lakukan review terhadap dokumentasi kebijakan dan SOP yang berlaku.</li>
+            <li data-list="unchecked">Wawancarai personil penanggung jawab kendali keamanan (control owner).</li>
+            <li data-list="unchecked">Dokumentasikan temuan kesenjangan dan rumuskan rencana tindakan perbaikan (Corrective Action Plan).</li>
+          </ul>
+        `;
+      } else if (type === 'callout') {
+        templateHtml = `
+          <blockquote style="border-left:4px solid #f59e0b; background:#fffbeb; padding:14px 18px; border-radius:0 10px 10px 0; color:#b45309; margin:16px 0;">
+            <strong>⚠️ Peringatan Kepatuhan Regulasi:</strong>
+            Kegagalan mendokumentasikan bukti evaluasi efektivitas kontrol secara berkala dapat dikategorikan sebagai ketidaksesuaian mayor (Major Non-Conformity) dalam audit sertifikasi resmi.
+          </blockquote>
+        `;
+      } else if (type === 'download') {
+        templateHtml = `
+          <blockquote style="border-left:4px solid #059669; background:#ecfdf5; padding:14px 18px; border-radius:0 10px 10px 0; color:#065f46; margin:16px 0;">
+            <strong>📥 Sumber Daya &amp; Lembar Kerja Bab Ini:</strong>
+            Unduh matriks kerja yang dilampirkan pada tombol unduh di atas video pembelajaran untuk mempraktikkan langsung materi ini.
+          </blockquote>
+        `;
+      }
+
+      if (isLmsLessonHtmlMode) {
+        document.getElementById('rawLmsLessonTextarea').value += "\n" + templateHtml;
+      } else {
+        const cur = lmsLessonQuill.root.innerHTML;
+        lmsLessonQuill.root.innerHTML = cur + templateHtml;
+        updateEditorStats(lmsLessonQuill, 'lmsLessonStats');
       }
     }
 
@@ -3913,6 +4342,7 @@ $maskedEmail = substr(ADMIN_EMAIL, 0, 3) . '***@' . explode('@', ADMIN_EMAIL)[1]
     }
 
     function openCourseModal(id) {
+      initQuill();
       const modal = document.getElementById('courseEditorModal');
       if (!modal) return;
       const form = document.getElementById('courseEditForm');
@@ -3938,7 +4368,17 @@ $maskedEmail = substr(ADMIN_EMAIL, 0, 3) . '***@' . explode('@', ADMIN_EMAIL)[1]
         document.getElementById('courseEditInstructorAvatar').value = c.instructor_avatar || '/images/author-restia-formal.webp';
         document.getElementById('courseEditCoverImage').value = c.cover_image || '/images/iso-27001-cover.webp';
         document.getElementById('courseEditIsPublished').value = (c.is_published !== undefined ? c.is_published : 1);
-        document.getElementById('courseEditDescription').value = c.description || '';
+        
+        const courseDesc = c.description || '';
+        document.getElementById('courseEditDescription').value = courseDesc;
+        if (courseQuill) {
+          courseQuill.root.innerHTML = courseDesc;
+          updateEditorStats(courseQuill, 'courseDescStats');
+        }
+        const rawCourseEl = document.getElementById('rawCourseTextarea');
+        if (rawCourseEl) rawCourseEl.value = courseDesc;
+        if (isCourseHtmlMode) toggleCourseHtmlMode();
+
         document.getElementById('courseModalTitle').innerText = 'Edit Program Kursus: ' + c.title;
         updateCourseSlugLivePreview(c.slug || '');
       } else {
@@ -3955,6 +4395,17 @@ $maskedEmail = substr(ADMIN_EMAIL, 0, 3) . '***@' . explode('@', ADMIN_EMAIL)[1]
         document.getElementById('courseEditInstructorAvatar').value = '/images/author-restia-formal.webp';
         document.getElementById('courseEditCoverImage').value = '/images/iso-27001-cover.webp';
         document.getElementById('courseEditIsPublished').value = '1';
+
+        const defCourseHtml = '<p>Uraikan gambaran umum kursus, topik bahasan utama, dan target kompetensi peserta...</p>';
+        document.getElementById('courseEditDescription').value = defCourseHtml;
+        if (courseQuill) {
+          courseQuill.root.innerHTML = defCourseHtml;
+          updateEditorStats(courseQuill, 'courseDescStats');
+        }
+        const rawCourseEl = document.getElementById('rawCourseTextarea');
+        if (rawCourseEl) rawCourseEl.value = defCourseHtml;
+        if (isCourseHtmlMode) toggleCourseHtmlMode();
+
         document.getElementById('courseModalTitle').innerText = 'Tambah Program Kursus Baru';
         updateCourseSlugLivePreview('');
       }
@@ -3995,6 +4446,10 @@ $maskedEmail = substr(ADMIN_EMAIL, 0, 3) . '***@' . explode('@', ADMIN_EMAIL)[1]
 
       const formData = new FormData(document.getElementById('courseEditForm'));
       formData.append('action', 'save_course');
+      const descVal = isCourseHtmlMode 
+        ? document.getElementById('rawCourseTextarea').value 
+        : (courseQuill ? courseQuill.root.innerHTML : (document.getElementById('rawCourseTextarea')?.value || ''));
+      formData.set('description', descVal);
 
       try {
         const res = await fetch('/api/admin-action.php', {
