@@ -2612,6 +2612,7 @@ $maskedEmail = substr(ADMIN_EMAIL, 0, 3) . '***@' . explode('@', ADMIN_EMAIL)[1]
           <td>
             <div class="status-stack">
               ${statusPill}
+              ${o.pdf_password ? `<div style="margin-top:4px;"><code style="font-size:11px; font-weight:800; background:#f0fdf4; color:#047857; border:1px dashed #059669; padding:2px 6px; border-radius:4px; font-family:'SF Mono',Consolas,monospace;" title="Password PDF">🔐 ${o.pdf_password}</code></div>` : ''}
             </div>
           </td>
           <td style="text-align:right;">

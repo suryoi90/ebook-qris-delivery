@@ -19,7 +19,8 @@ class MailService
         string $toName,
         string $productTitle,
         string $invoiceNumber,
-        string $pdfAttachmentPath
+        string $pdfAttachmentPath,
+        string $pdfPassword = ''
     ): bool {
         if (!file_exists($pdfAttachmentPath)) {
             throw new Exception("Berkas lampiran tidak ditemukan: {$pdfAttachmentPath}");
@@ -61,8 +62,10 @@ class MailService
             // Konten Email Berformat Eksekutif
             $mail->isHTML(true);
             $mail->Subject = "Pengiriman Dokumen Resmi: {$productTitle}";
-            $mail->Body    = self::getEmailTemplate($toName, $productTitle, $invoiceNumber);
-            $mail->AltBody = "DOKUMEN RESMI TERVERIFIKASI\nRestia Moegiono Official Store\nPustaka Keamanan Informasi & Privasi Data Digital\n\nHalo, {$toName}\nTerima kasih atas kepercayaan Anda telah memesan karya e-book karya Restia Moegiono.\n\nNo. Invoice:\t{$invoiceNumber}\nProduk E-Book:\t{$productTitle}\nStatus Pembayaran:\t✓ LUNAS (TERVERIFIKASI)\n\n🔐 Dokumen Lisensi Resmi Telah Dilampirkan: Berkas PDF master e-book telah dipersonalisasi dengan stempel watermark nama, email, dan identitas instansi Anda di setiap halaman. Silakan unduh lampiran pada email ini.\n\nJika Anda memerlukan klarifikasi teknis atau bantuan terkait dokumen ini, Anda dapat membalas email ini secara langsung.\n\nSalam hangat,\nRestia Moegiono & Tim Redaksi\nPraktisi Keamanan Siber dan Pegiat Literasi Digital\n\n© 2026 Restia Moegiono.\nstore.restiamoegiono.com · restiamoegiono.com";
+            $mail->Body    = self::getEmailTemplate($toName, $productTitle, $invoiceNumber, $pdfPassword);
+
+            $pwdLine = !empty($pdfPassword) ? "\nPassword Buka PDF:\t{$pdfPassword}\n(Gunakan 6 karakter acak di atas saat membuka lampiran berkas PDF)" : "";
+            $mail->AltBody = "DOKUMEN RESMI TERVERIFIKASI\nRestia Moegiono Official Store\nPustaka Keamanan Informasi & Privasi Data Digital\n\nHalo, {$toName}\nTerima kasih atas kepercayaan Anda telah memesan karya e-book karya Restia Moegiono.\n\nNo. Invoice:\t{$invoiceNumber}\nProduk E-Book:\t{$productTitle}\nStatus Pembayaran:\t✓ LUNAS (TERVERIFIKASI){$pwdLine}\n\n🔐 Dokumen Lisensi Resmi Telah Dilampirkan: Berkas PDF master e-book telah dipersonalisasi dengan stempel watermark nama, email, dan identitas instansi Anda di setiap halaman. Silakan unduh lampiran pada email ini.\n\nJika Anda memerlukan klarifikasi teknis atau bantuan terkait dokumen ini, Anda dapat membalas email ini secara langsung.\n\nSalam hangat,\nRestia Moegiono & Tim Redaksi\nPraktisi Keamanan Siber dan Pegiat Literasi Digital\n\n© 2026 Restia Moegiono.\nstore.restiamoegiono.com · restiamoegiono.com";
 
             return $mail->send();
         } catch (Exception $e) {
@@ -73,11 +76,36 @@ class MailService
     /**
      * Template Email HTML Elegan & Profesional
      */
-    private static function getEmailTemplate(string $name, string $title, string $invoice): string
+    private static function getEmailTemplate(string $name, string $title, string $invoice, string $password = ''): string
     {
         $safeName = htmlspecialchars($name, ENT_QUOTES, 'UTF-8');
         $safeTitle = htmlspecialchars($title, ENT_QUOTES, 'UTF-8');
         $safeInv = htmlspecialchars($invoice, ENT_QUOTES, 'UTF-8');
+        $safePassword = htmlspecialchars($password, ENT_QUOTES, 'UTF-8');
+
+        $passwordRowHtml = '';
+        $passwordBoxHtml = '';
+        if (!empty($password)) {
+            $passwordRowHtml = <<<HTML
+          <tr>
+            <td style="color:#64748b; padding:4px 0; font-size:13px;">Password Buka PDF:</td>
+            <td style="font-weight:900; color:#059669; font-family:'SF Mono', Consolas, Monaco, monospace; letter-spacing:2px; text-align:right; font-size:15px;">{$safePassword}</td>
+          </tr>
+HTML;
+            $passwordBoxHtml = <<<HTML
+      <div style="background: linear-gradient(135deg, #f0fdf4, #ecfdf5); border: 2px dashed #059669; border-radius: 12px; padding: 18px 20px; margin: 20px 0; text-align: center;">
+        <div style="font-size: 11px; font-weight: 800; color: #047857; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">
+          🔐 Password Buka Berkas PDF Anda
+        </div>
+        <div style="font-size: 32px; font-weight: 900; color: #065f46; letter-spacing: 6px; font-family: 'SF Mono', Consolas, Monaco, monospace; margin: 4px 0;">
+          {$safePassword}
+        </div>
+        <div style="font-size: 12px; color: #047857;">
+          Gunakan 6 karakter acak huruf kecil / angka di atas saat membuka lampiran berkas PDF berlisensi resmi Anda.
+        </div>
+      </div>
+HTML;
+        }
 
         return <<<HTML
 <!DOCTYPE html>
@@ -128,8 +156,11 @@ class MailService
             <td style="color:#64748b; padding:4px 0; font-size:13px;">Status Pembayaran:</td>
             <td style="font-weight:800; color:#059669; text-align:right; font-size:13px;">✓ LUNAS (TERVERIFIKASI)</td>
           </tr>
+          {$passwordRowHtml}
         </table>
       </div>
+
+      {$passwordBoxHtml}
 
       <div class="security-badge">
         <strong>🔐 Dokumen Lisensi Resmi Telah Dilampirkan:</strong>

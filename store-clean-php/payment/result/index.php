@@ -82,8 +82,22 @@ $invoice = htmlspecialchars($_GET['invoice'] ?? '', ENT_QUOTES, 'UTF-8');
       </div>
     </div>
 
-    <div id="noticePaid" style="display:none; background:#ecfdf5; border:1px solid #a7f3d0; border-radius:12px; padding:14px; font-size:13px; color:#065f46; margin-bottom:20px;">
-      ✓ Berkas PDF e-book dengan stempel watermark lisensi resmi Anda telah berhasil dikirimkan ke email. Silakan periksa kotak masuk (inbox) atau folder spam.
+    <div id="noticePaid" style="display:none; background:#ecfdf5; border:1px solid #a7f3d0; border-radius:12px; padding:14px; font-size:13px; color:#065f46; margin-bottom:16px;">
+      ✓ Berkas PDF e-book dengan stempel watermark lisensi resmi Anda telah diproses &amp; dikirimkan ke email. Silakan periksa kotak masuk (inbox) atau folder spam.
+    </div>
+
+    <!-- KARTU PASSWORD PDF -->
+    <div id="passwordCard" style="display:none; background: linear-gradient(135deg, #f0fdf4, #ecfdf5); border: 2px dashed #059669; border-radius: 16px; padding: 20px; margin-bottom: 20px; text-align: center;">
+      <div style="font-size: 11px; font-weight: 800; color: #047857; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">
+        🔐 Password Buka Berkas PDF Anda
+      </div>
+      <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin: 8px 0;">
+        <span id="dispPdfPassword" style="font-size: 32px; font-weight: 900; color: #065f46; letter-spacing: 6px; font-family: 'SF Mono', Consolas, Monaco, monospace;">------</span>
+        <button id="btnCopyPwd" onclick="copyPassword()" type="button" style="background: #059669; color: #ffffff; border: none; border-radius: 8px; padding: 8px 14px; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: background 0.15s;">Salin</button>
+      </div>
+      <div style="font-size: 12px; color: #047857;">
+        Gunakan 6 karakter acak di atas untuk membuka lampiran berkas PDF berlisensi resmi Anda.
+      </div>
     </div>
 
     <a href="/" class="btn-home">Kembali ke Toko</a>
@@ -91,6 +105,8 @@ $invoice = htmlspecialchars($_GET['invoice'] ?? '', ENT_QUOTES, 'UTF-8');
 
   <script>
     const invoice = '<?= $invoice ?>' || localStorage.getItem('rm_last_invoice') || '';
+    let currentPdfPassword = '';
+
     if (invoice) {
       document.getElementById('dispInvoice').innerText = invoice;
       checkStatus();
@@ -104,8 +120,8 @@ $invoice = htmlspecialchars($_GET['invoice'] ?? '', ENT_QUOTES, 'UTF-8');
       try {
         const res = await fetch('/api/order-status.php?invoice=' + encodeURIComponent(invoice));
         const data = await res.json();
-        if (data.success && data.order) {
-          const o = data.order;
+        const o = data.order || (data.orders && data.orders[0]) || null;
+        if (data.success && o) {
           document.getElementById('dispProduct').innerText = o.product_title;
           document.getElementById('dispEmail').innerText = o.customer_email;
 
@@ -117,6 +133,12 @@ $invoice = htmlspecialchars($_GET['invoice'] ?? '', ENT_QUOTES, 'UTF-8');
             document.getElementById('dispStatus').innerHTML = '<span class="status-badge status-badge-paid">✓ LUNAS</span>';
             document.getElementById('noticePaid').style.display = 'block';
 
+            if (o.pdf_password) {
+              currentPdfPassword = o.pdf_password;
+              document.getElementById('passwordCard').style.display = 'block';
+              document.getElementById('dispPdfPassword').innerText = o.pdf_password;
+            }
+
             if (o.email_sent) {
               document.getElementById('rowEmailSent').style.display = 'flex';
             }
@@ -127,6 +149,20 @@ $invoice = htmlspecialchars($_GET['invoice'] ?? '', ENT_QUOTES, 'UTF-8');
       } catch (e) {
         console.error('Check status error:', e);
       }
+    }
+
+    function copyPassword() {
+      if (!currentPdfPassword) return;
+      navigator.clipboard.writeText(currentPdfPassword).then(() => {
+        const btn = document.getElementById('btnCopyPwd');
+        const orig = btn.innerText;
+        btn.innerText = '✓ Tersalin!';
+        btn.style.background = '#047857';
+        setTimeout(() => {
+          btn.innerText = orig;
+          btn.style.background = '#059669';
+        }, 2000);
+      });
     }
   </script>
 </body>

@@ -45,15 +45,19 @@ class FulfillmentService
             $order['customer_org'] ?: '-'
         );
 
+        // Generate password 6 karakter acak (huruf kecil a-z atau angka 0-9)
+        $pdfPassword = !empty($order['pdf_password']) ? $order['pdf_password'] : self::generateRandomPassword(6);
+
         try {
-            // 1. Eksekusi Stempel Watermark ke PDF
+            // 1. Eksekusi Stempel Watermark & Proteksi Password AES-256 ke PDF
             $pdfPath = WatermarkService::stampPdf(
                 $product['master_file'],
                 $product['title'],
                 $order['customer_name'],
                 $order['customer_email'],
                 $order['customer_org'],
-                $invoiceNumber
+                $invoiceNumber,
+                $pdfPassword
             );
 
             // 2. Eksekusi Pengiriman Email Berlampiran PDF via SMTP cPanel
@@ -62,12 +66,14 @@ class FulfillmentService
                 $order['customer_name'],
                 $product['title'],
                 $invoiceNumber,
-                $pdfPath
+                $pdfPath,
+                $pdfPassword
             );
 
-            // 3. Simpan Pembaruan Status ke Database
+            // 3. Simpan Pembaruan Status & Password ke Database
             $upd = $db->prepare("UPDATE `store_orders` SET 
                 `payment_status` = 'PAID',
+                `pdf_password` = :pwd,
                 `watermarked_file` = :pdf,
                 `drm_watermark_text` = :wm,
                 `email_sent` = 1,
@@ -76,6 +82,7 @@ class FulfillmentService
                 WHERE `id` = :id");
 
             $upd->execute([
+                ':pwd' => $pdfPassword,
                 ':pdf' => $pdfPath,
                 ':wm' => $watermarkText,
                 ':id' => $order['id']
@@ -97,9 +104,10 @@ class FulfillmentService
 
             return [
                 'success' => true,
-                'message' => 'Watermark berhasil distempel dan email telah dikirimkan ke pembeli!',
+                'message' => 'Watermark dan password PDF berhasil dipasang serta email telah dikirimkan ke pembeli!',
                 'invoice' => $invoiceNumber,
-                'pdf_path' => $pdfPath
+                'pdf_path' => $pdfPath,
+                'pdf_password' => $pdfPassword
             ];
 
         } catch (Throwable $e) {
@@ -113,5 +121,19 @@ class FulfillmentService
 
             throw $e;
         }
+    }
+
+    /**
+     * Generate password acak 6 karakter terdiri dari huruf kecil (a-z) dan angka (0-9)
+     */
+    public static function generateRandomPassword(int $length = 6): string
+    {
+        $chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+        $maxIndex = strlen($chars) - 1;
+        $pwd = '';
+        for ($i = 0; $i < $length; $i++) {
+            $pwd .= $chars[random_int(0, $maxIndex)];
+        }
+        return $pwd;
     }
 }

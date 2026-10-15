@@ -12,7 +12,8 @@ class WatermarkService
         string $customerName,
         string $customerEmail,
         string $customerOrg,
-        string $invoiceNumber
+        string $invoiceNumber,
+        string $pdfPassword = ''
     ): string {
         $masterPath = MASTER_EBOOKS_DIR . '/' . $masterFileName;
         if (!file_exists($masterPath)) {
@@ -41,7 +42,7 @@ class WatermarkService
         }
 
         $cmd = sprintf(
-            'python3 %s --input %s --output %s --title %s --name %s --email %s --org %s --invoice %s 2>&1',
+            'python3 %s --input %s --output %s --title %s --name %s --email %s --org %s --invoice %s --password %s 2>&1',
             escapeshellarg($scriptPath),
             escapeshellarg($masterPath),
             escapeshellarg($outputPath),
@@ -49,7 +50,8 @@ class WatermarkService
             escapeshellarg($customerName),
             escapeshellarg($customerEmail),
             escapeshellarg($customerOrg ?: '-'),
-            escapeshellarg($invoiceNumber)
+            escapeshellarg($invoiceNumber),
+            escapeshellarg($pdfPassword)
         );
 
         $output = shell_exec($cmd);

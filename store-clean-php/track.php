@@ -309,6 +309,12 @@ if (!empty($searchQuery)) {
                     Tanggal: <?= date('d M Y, H:i', strtotime($ord['created_at'])) ?> WIB
                   </span>
                 </div>
+                <?php if ($isPaid && !empty($ord['pdf_password'])): ?>
+                  <div style="margin-top:8px; display:inline-flex; align-items:center; gap:8px; background:#f0fdf4; border:1px dashed #059669; padding:5px 12px; border-radius:8px;">
+                    <span style="font-size:11px; font-weight:800; color:#047857;">🔐 Password PDF:</span>
+                    <code style="font-size:15px; font-weight:900; color:#065f46; letter-spacing:3px; font-family:'SF Mono',Consolas,monospace;"><?= htmlspecialchars($ord['pdf_password']) ?></code>
+                  </div>
+                <?php endif; ?>
               </div>
               <div>
                 <?php if ($isPaid): ?>
@@ -346,16 +352,14 @@ if (!empty($searchQuery)) {
     async function requestResendEmail(inv) {
       if (!confirm(`Kirim ulang berkas PDF untuk invoice ${inv} ke alamat email terdaftar?`)) return;
       try {
-        const res = await fetch('/api/order-status.php?action=resend_email', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ invoice_number: inv })
+        const res = await fetch('/api/order-status.php?action=resend&invoice=' + encodeURIComponent(inv), {
+          method: 'POST'
         });
         const data = await res.json();
         if (data.success) {
-          alert('✓ Berkas e-book resmi berhasil dikirimkan ulang ke alamat email Anda! Silakan periksa inbox atau folder spam.');
+          alert('✓ ' + (data.message || 'Berkas e-book resmi berhasil dikirimkan ulang ke alamat email Anda! Silakan periksa inbox atau folder spam.'));
         } else {
-          alert('Gagal: ' + (data.message || 'Silakan hubungi dukungan order@restiamoegiono.com'));
+          alert('Gagal: ' + (data.error || data.message || 'Silakan hubungi dukungan order@restiamoegiono.com'));
         }
       } catch (e) {
         alert('Terjadi kesalahan jaringan.');

@@ -47,6 +47,7 @@ try {
             'Kode Promo',
             'Diskon (Rp)',
             'Status Pembayaran',
+            'Password PDF',
             'Status Pengiriman Email',
             'Waktu Email Terkirim'
         ]);
@@ -67,6 +68,7 @@ try {
                 $r['coupon_code'] ?: '-',
                 (float)($r['discount_amount'] ?? 0),
                 $r['payment_status'],
+                $r['pdf_password'] ?: '-',
                 $r['email_sent'] ? 'SUDAH TERKIRIM' : 'BELUM',
                 $r['email_sent_at'] ?: '-'
             ]);

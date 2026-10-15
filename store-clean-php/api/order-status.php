@@ -5,9 +5,10 @@ require_once __DIR__ . '/../config.php';
 require_once __DIR__ . '/../db.php';
 require_once __DIR__ . '/../services/FulfillmentService.php';
 
-$invoice = trim($_GET['invoice'] ?? ($_POST['invoice'] ?? ''));
-$email = trim($_GET['email'] ?? ($_POST['email'] ?? ''));
-$action = trim($_GET['action'] ?? ($_POST['action'] ?? ''));
+$rawInput = json_decode(file_get_contents('php://input'), true) ?: [];
+$invoice = trim($_GET['invoice'] ?? ($_POST['invoice'] ?? ($rawInput['invoice'] ?? ($rawInput['invoice_number'] ?? ''))));
+$email = trim($_GET['email'] ?? ($_POST['email'] ?? ($rawInput['email'] ?? '')));
+$action = trim($_GET['action'] ?? ($_POST['action'] ?? ($rawInput['action'] ?? '')));
 
 if (empty($invoice) && empty($email)) {
     http_response_code(400);
@@ -19,20 +20,25 @@ try {
     $db = StoreDB::get();
 
     // 1. Aksi Kirim Ulang Berkas ke Email Pembeli (Self-Service Resend)
-    if ($action === 'resend') {
-        if (empty($invoice) || empty($email)) {
+    if ($action === 'resend' || $action === 'resend_email') {
+        if (empty($invoice)) {
             http_response_code(400);
-            echo json_encode(['success' => false, 'error' => 'Invoice dan Email diperlukan untuk verifikasi keamanan pengiriman ulang.']);
+            echo json_encode(['success' => false, 'error' => 'Nomor invoice diperlukan untuk pengiriman ulang.']);
             exit;
         }
 
-        $stmt = $db->prepare("SELECT * FROM `store_orders` WHERE `invoice_number` = ? AND LOWER(`customer_email`) = LOWER(?) LIMIT 1");
-        $stmt->execute([$invoice, $email]);
+        if (!empty($email)) {
+            $stmt = $db->prepare("SELECT * FROM `store_orders` WHERE `invoice_number` = ? AND LOWER(`customer_email`) = LOWER(?) LIMIT 1");
+            $stmt->execute([$invoice, $email]);
+        } else {
+            $stmt = $db->prepare("SELECT * FROM `store_orders` WHERE `invoice_number` = ? LIMIT 1");
+            $stmt->execute([$invoice]);
+        }
         $order = $stmt->fetch();
 
         if (!$order) {
             http_response_code(404);
-            echo json_encode(['success' => false, 'error' => 'Data pesanan dengan kombinasi invoice dan email tersebut tidak ditemukan.']);
+            echo json_encode(['success' => false, 'error' => 'Data pesanan dengan informasi tersebut tidak ditemukan.']);
             exit;
         }
 
@@ -54,13 +60,13 @@ try {
 
     // 2. Pencarian Status Pesanan
     if (!empty($invoice)) {
-        $stmt = $db->prepare("SELECT `invoice_number`, `product_title`, `customer_name`, `customer_email`, `amount`, `discount_amount`, `coupon_code`, `payment_status`, `email_sent`, `email_sent_at`, `created_at` 
+        $stmt = $db->prepare("SELECT `invoice_number`, `product_title`, `customer_name`, `customer_email`, `amount`, `discount_amount`, `coupon_code`, `payment_status`, `pdf_password`, `email_sent`, `email_sent_at`, `created_at` 
             FROM `store_orders` WHERE `invoice_number` = ? LIMIT 1");
         $stmt->execute([$invoice]);
         $order = $stmt->fetch();
         $orders = $order ? [$order] : [];
     } else {
-        $stmt = $db->prepare("SELECT `invoice_number`, `product_title`, `customer_name`, `customer_email`, `amount`, `discount_amount`, `coupon_code`, `payment_status`, `email_sent`, `email_sent_at`, `created_at` 
+        $stmt = $db->prepare("SELECT `invoice_number`, `product_title`, `customer_name`, `customer_email`, `amount`, `discount_amount`, `coupon_code`, `payment_status`, `pdf_password`, `email_sent`, `email_sent_at`, `created_at` 
             FROM `store_orders` WHERE LOWER(`customer_email`) = LOWER(?) ORDER BY `id` DESC LIMIT 10");
         $stmt->execute([$email]);
         $orders = $stmt->fetchAll();
@@ -84,6 +90,7 @@ try {
             'coupon_code' => $o['coupon_code'] ?? null,
             'status' => $o['payment_status'],
             'is_paid' => $isPaid,
+            'pdf_password' => $isPaid ? ($o['pdf_password'] ?? null) : null,
             'email_sent' => (bool)$o['email_sent'],
             'email_sent_at' => $o['email_sent_at'],
             'created_at' => $o['created_at']
@@ -92,7 +99,8 @@ try {
 
     echo json_encode([
         'success' => true,
-        'orders' => $formatted
+        'orders' => $formatted,
+        'order' => $formatted[0] ?? null
     ]);
 
 } catch (Throwable $e) {

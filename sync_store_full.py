@@ -85,6 +85,7 @@ files_to_sync = [
     (DOCROOT + "/api", base_local / "api/admin-action.php", "admin-action.php"),
     (DOCROOT + "/payment/result", base_local / "payment/result/index.php", "index.php"),
     (DOCROOT + "/admin", base_local / "admin/index.php", "index.php"),
+    (DOCROOT + "/bin", base_local / "bin/watermark.py", "watermark.py"),
 ]
 
 print("=== DEPLOYING NATIVE PHP ARCHITECTURE TO STORE.RESTIAMOEGIONO.COM ===")
