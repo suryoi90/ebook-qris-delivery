@@ -2630,6 +2630,29 @@ $maskedEmail = substr(ADMIN_EMAIL, 0, 3) . '***@' . explode('@', ADMIN_EMAIL)[1]
       window.location.href = '/api/admin-action.php?action=export_orders&admin_key=' + encodeURIComponent(ADMIN_KEY);
     }
 
+    async function fulfillManual(inv) {
+      if (!confirm(`Stempel DRM berpassword dan kirimkan e-book untuk invoice ${inv}?`)) return;
+      try {
+        const formData = new FormData();
+        formData.append('action', 'fulfill_order');
+        formData.append('invoice', inv);
+        const res = await fetch('/api/admin-action.php', {
+          method: 'POST',
+          headers: { 'X-Admin-Auth': ADMIN_KEY },
+          body: formData
+        });
+        const data = await res.json();
+        if (data.success) {
+          alert('✓ ' + (data.message || 'Berhasil diproses!'));
+          loadAdminData();
+        } else {
+          alert('Gagal: ' + (data.error || 'Terjadi kesalahan sistem.'));
+        }
+      } catch (e) {
+        alert('Kesalahan jaringan: ' + e.message);
+      }
+    }
+
     async function loadAdminData() {
       try {
         const res = await fetch('/api/admin-action.php?action=get_data', {

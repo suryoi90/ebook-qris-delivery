@@ -80,6 +80,66 @@ try {
     // Response default selanjutnya adalah JSON
     header('Content-Type: application/json; charset=utf-8');
 
+    // 0b. Aksi Fulfill / Stempel Ulang Berkas DRM & Kirim Email Secara Manual
+    if ($action === 'fulfill_order') {
+        $inv = trim($_POST['invoice'] ?? ($_GET['invoice'] ?? ''));
+        if (empty($inv)) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'error' => 'Invoice nomor diperlukan.']);
+            exit;
+        }
+
+        $res = FulfillmentService::fulfillOrder($inv, true);
+        echo json_encode([
+            'success' => true,
+            'message' => 'Berkas PDF ber-watermark berhasil distempel dengan password dan dikirimkan ke pembeli!',
+            'result' => $res
+        ]);
+        exit;
+    }
+
+    // 0c. Aksi Verifikasi Kriptografi PDF (Uji Coba Password & Dekripsi AES-256)
+    if ($action === 'verify_pdf_crypto') {
+        $inv = trim($_POST['invoice'] ?? ($_GET['invoice'] ?? ''));
+        $stmt = $db->prepare("SELECT * FROM `store_orders` WHERE `invoice_number` = ? LIMIT 1");
+        $stmt->execute([$inv]);
+        $order = $stmt->fetch();
+
+        if (!$order) {
+            http_response_code(404);
+            echo json_encode(['success' => false, 'error' => 'Pesanan tidak ditemukan']);
+            exit;
+        }
+
+        $pdfFile = $order['watermarked_file'];
+        $pwd = $order['pdf_password'];
+
+        if (!file_exists($pdfFile)) {
+            echo json_encode(['success' => false, 'error' => "Berkas PDF tidak ditemukan di server: {$pdfFile}"]);
+            exit;
+        }
+
+        $cmd = sprintf(
+            'python3 -c "import sys, json; from pypdf import PdfReader; r = PdfReader(\'%s\'); is_enc = r.is_encrypted; dec_wrong = r.decrypt(\'wrong1\'); dec_ok = r.decrypt(\'%s\'); pages = len(r.pages); print(json.dumps({\'is_encrypted\': is_enc, \'decrypt_wrong\': dec_wrong, \'decrypt_ok\': dec_ok, \'page_count\': pages}))"',
+            addslashes($pdfFile),
+            addslashes($pwd)
+        );
+        $pyOutput = shell_exec($cmd);
+        $cryptoResult = json_decode(trim((string)$pyOutput), true);
+
+        echo json_encode([
+            'success' => true,
+            'invoice' => $inv,
+            'password' => $pwd,
+            'password_length' => strlen($pwd),
+            'password_valid_chars' => ctype_alnum($pwd) && (strtolower($pwd) === $pwd),
+            'pdf_path' => $pdfFile,
+            'pdf_size' => filesize($pdfFile),
+            'crypto_verification' => $cryptoResult
+        ]);
+        exit;
+    }
+
     // 1. Ambil Ringkasan Statistik KPI, Pesanan, Produk, & Kupon
     if ($action === 'get_data') {
         $orders = $db->query("SELECT * FROM `store_orders` ORDER BY `id` DESC LIMIT 100")->fetchAll();
