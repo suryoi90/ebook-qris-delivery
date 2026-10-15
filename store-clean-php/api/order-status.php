@@ -60,13 +60,13 @@ try {
 
     // 2. Pencarian Status Pesanan
     if (!empty($invoice)) {
-        $stmt = $db->prepare("SELECT `invoice_number`, `product_title`, `customer_name`, `customer_email`, `amount`, `discount_amount`, `coupon_code`, `payment_status`, `pdf_password`, `email_sent`, `email_sent_at`, `created_at` 
+        $stmt = $db->prepare("SELECT `invoice_number`, `product_title`, `items_json`, `customer_name`, `customer_email`, `amount`, `discount_amount`, `coupon_code`, `payment_status`, `pdf_password`, `email_sent`, `email_sent_at`, `created_at` 
             FROM `store_orders` WHERE `invoice_number` = ? LIMIT 1");
         $stmt->execute([$invoice]);
         $order = $stmt->fetch();
         $orders = $order ? [$order] : [];
     } else {
-        $stmt = $db->prepare("SELECT `invoice_number`, `product_title`, `customer_name`, `customer_email`, `amount`, `discount_amount`, `coupon_code`, `payment_status`, `pdf_password`, `email_sent`, `email_sent_at`, `created_at` 
+        $stmt = $db->prepare("SELECT `invoice_number`, `product_title`, `items_json`, `customer_name`, `customer_email`, `amount`, `discount_amount`, `coupon_code`, `payment_status`, `pdf_password`, `email_sent`, `email_sent_at`, `created_at` 
             FROM `store_orders` WHERE LOWER(`customer_email`) = LOWER(?) ORDER BY `id` DESC LIMIT 10");
         $stmt->execute([$email]);
         $orders = $stmt->fetchAll();
@@ -80,9 +80,12 @@ try {
 
     $formatted = array_map(function($o) {
         $isPaid = in_array($o['payment_status'], ['PAID', 'SUCCESS']);
+        $items = !empty($o['items_json']) ? json_decode($o['items_json'], true) : [];
         return [
             'invoice' => $o['invoice_number'],
             'product_title' => $o['product_title'],
+            'items' => $items,
+            'items_count' => count($items) ?: 1,
             'customer_name' => $o['customer_name'],
             'customer_email' => $o['customer_email'],
             'amount' => (int)$o['amount'],

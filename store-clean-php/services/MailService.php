@@ -54,10 +54,16 @@ class MailService
             $mail->addAddress($toEmail, $toName);
             $mail->addReplyTo('order@restiamoegiono.com', 'Restia Moegiono Store');
 
-            // Lampiran Berkas PDF
-            $cleanTitle = preg_replace('/[^a-zA-Z0-9_\-\s]/', '', $productTitle);
-            $fileName = trim($cleanTitle) . '.pdf';
-            $mail->addAttachment($pdfAttachmentPath, $fileName);
+            // Lampiran Berkas PDF (mendukung single file maupun multiple files dari keranjang belanja)
+            $attachments = is_array($pdfAttachmentPath) ? $pdfAttachmentPath : [$pdfAttachmentPath];
+            foreach ($attachments as $attPath) {
+                if (!empty($attPath) && file_exists($attPath)) {
+                    $baseName = basename($attPath);
+                    // Bersihkan prefix invoice dari nama berkas lampiran
+                    $displayAttachName = preg_replace('/^RM-\d+-[a-zA-Z0-9]+_/', '', $baseName);
+                    $mail->addAttachment($attPath, $displayAttachName);
+                }
+            }
 
             // Konten Email Berformat Eksekutif
             $mail->isHTML(true);

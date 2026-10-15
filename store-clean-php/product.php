@@ -708,6 +708,10 @@ function str_limit($value, $limit = 100, $end = '...') {
         </div>
       </a>
       <div class="nav-actions">
+        <button type="button" onclick="CartEngine.open()" class="badge-portal" style="border:none; cursor:pointer; background:linear-gradient(135deg, #0F224A, #00AEFF); color:#ffffff; font-weight:800; gap:8px;">
+          🛒 Keranjang
+          <span class="nav-cart-counter" style="display:none; background:#ef4444; color:#ffffff; font-size:10px; font-weight:900; padding:1px 6px; border-radius:10px; line-height:1.2;">0</span>
+        </button>
         <a href="/" class="badge-portal">
           📚 Semua E-Book
         </a>
@@ -835,11 +839,20 @@ function str_limit($value, $limit = 100, $end = '...') {
 
             <div class="cta-button-group">
               <button type="button" class="btn-buy-primary" onclick="openCheckout('<?= htmlspecialchars($product['id']) ?>', '<?= htmlspecialchars(addslashes($product['title'])) ?>', <?= (int)$product['price'] ?>)">
-                <span>Beli E-Book Sekarang</span>
+                <span>⚡ Beli Langsung</span>
                 <span>➔</span>
               </button>
+              <button type="button" class="btn-cart-add-product" style="padding:15px 20px; border-radius:14px; background:var(--color-blue-soft); color:var(--color-cyan); font-weight:800; font-size:14px; border:2px solid var(--color-cyan); cursor:pointer; display:inline-flex; align-items:center; gap:8px; transition:all 0.15s ease;" onclick='CartEngine.add(<?= json_encode([
+                "id" => $product["id"],
+                "title" => $product["title"],
+                "price" => (float)$product["price"],
+                "cover" => $product["cover_image"] ?: "/images/book-cover-450.webp",
+                "badge" => $product["badge"] ?: $product["category"]
+              ], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>)'>
+                <span>+ 🛒 Tambah ke Keranjang</span>
+              </button>
               <button type="button" class="btn-syllabus-secondary" onclick="scrollToTabs()">
-                <span>📑 Daftar Isi &amp; Silabus</span>
+                <span>📑 Silabus</span>
               </button>
             </div>
 
@@ -1333,5 +1346,8 @@ function str_limit($value, $limit = 100, $end = '...') {
       if (e.target === this) closeCheckout();
     });
   </script>
+
+  <!-- UNIVERSAL CART DRAWER -->
+  <?php include __DIR__ . '/cart-drawer.php'; ?>
 </body>
 </html>

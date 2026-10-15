@@ -121,8 +121,11 @@ $invoice = htmlspecialchars($_GET['invoice'] ?? '', ENT_QUOTES, 'UTF-8');
         const res = await fetch('/api/order-status.php?invoice=' + encodeURIComponent(invoice));
         const data = await res.json();
         const o = data.order || (data.orders && data.orders[0]) || null;
-        if (data.success && o) {
-          document.getElementById('dispProduct').innerText = o.product_title;
+          if (o.items && o.items.length > 1) {
+            document.getElementById('dispProduct').innerHTML = o.items.map(it => `<div style="font-size:12px; font-weight:800; margin-bottom:3px; text-align:right;">📘 ${it.title}</div>`).join('');
+          } else {
+            document.getElementById('dispProduct').innerText = o.product_title;
+          }
           document.getElementById('dispEmail').innerText = o.customer_email;
 
           if (o.is_paid) {

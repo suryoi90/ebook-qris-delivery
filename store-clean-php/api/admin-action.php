@@ -20,6 +20,14 @@ $action = trim($_GET['action'] ?? ($_POST['action'] ?? ''));
 try {
     $db = StoreDB::get();
 
+    // Auto-migration: pastikan items_json ada di store_orders
+    try {
+        $colCheck = $db->query("SHOW COLUMNS FROM `store_orders` LIKE 'items_json'")->fetch();
+        if (!$colCheck) {
+            $db->exec("ALTER TABLE `store_orders` ADD COLUMN `items_json` LONGTEXT DEFAULT NULL AFTER `product_title`");
+        }
+    } catch (Exception $eMig) {}
+
     // 0. Ekspor Laporan CSV
     if ($action === 'export_orders') {
         $stmt = $db->query("SELECT * FROM `store_orders` ORDER BY `id` DESC");

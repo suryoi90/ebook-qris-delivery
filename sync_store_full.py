@@ -71,6 +71,7 @@ files_to_sync = [
     (DOCROOT, base_local / "db.php", "db.php"),
     (DOCROOT, base_local / "index.php", "index.php"),
     (DOCROOT, base_local / "product.php", "product.php"),
+    (DOCROOT, base_local / "cart-drawer.php", "cart-drawer.php"),
     (DOCROOT, base_local / "track.php", "track.php"),
     (DOCROOT, base_local / "guide.php", "guide.php"),
     (DOCROOT, base_local / "license.php", "license.php"),

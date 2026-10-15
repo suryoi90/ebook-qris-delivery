@@ -297,7 +297,19 @@ if (!empty($searchQuery)) {
               <img src="<?= htmlspecialchars($cover) ?>" alt="Cover" class="order-cover-thumb">
               <div class="order-meta-info">
                 <span class="invoice-tag"><?= htmlspecialchars($ord['invoice_number']) ?></span>
-                <div class="order-prod-title"><?= htmlspecialchars($ord['prod_title'] ?: $ord['product_id']) ?></div>
+                <?php 
+                  $itemsList = !empty($ord['items_json']) ? json_decode($ord['items_json'], true) : [];
+                ?>
+                <?php if (!empty($itemsList) && count($itemsList) > 1): ?>
+                  <div class="order-prod-title" style="margin-bottom:2px;">Paket <?= count($itemsList) ?> E-Book:</div>
+                  <ul style="margin: 0 0 6px 18px; padding: 0; font-size: 13px; color: var(--color-navy); font-weight: 700; line-height: 1.4;">
+                    <?php foreach ($itemsList as $it): ?>
+                      <li><?= htmlspecialchars($it['title']) ?></li>
+                    <?php endforeach; ?>
+                  </ul>
+                <?php else: ?>
+                  <div class="order-prod-title"><?= htmlspecialchars($ord['prod_title'] ?: ($ord['product_title'] ?: $ord['product_id'])) ?></div>
+                <?php endif; ?>
                 <div style="font-size:12px; color:var(--color-text-muted); margin-bottom:6px;">
                   Penerima: <b><?= htmlspecialchars($ord['customer_name']) ?></b> (<?= htmlspecialchars($ord['customer_email']) ?>)
                 </div>

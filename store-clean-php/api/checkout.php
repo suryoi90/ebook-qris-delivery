@@ -107,16 +107,15 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 // 2. Submit Pembuatan Pesanan & Sesi DOKU
 $input = json_decode(file_get_contents('php://input'), true) ?: $_POST;
 
-$productId = trim($input['product_id'] ?? '');
 $name = trim($input['name'] ?? '');
 $email = trim($input['email'] ?? '');
 $org = trim($input['org'] ?? '');
 $whatsapp = trim($input['whatsapp'] ?? '');
 $couponCode = trim($input['coupon_code'] ?? '');
 
-if (empty($productId) || empty($name) || empty($email)) {
+if (empty($name) || empty($email)) {
     http_response_code(400);
-    echo json_encode(['success' => false, 'error' => 'Harap lengkapi Nama, Email, dan Produk.']);
+    echo json_encode(['success' => false, 'error' => 'Harap lengkapi Nama Lengkap dan Alamat Email Anda.']);
     exit;
 }
 
@@ -126,25 +125,72 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
     exit;
 }
 
-try {
-    // Ambil data produk
-    $stmt = $db->prepare("SELECT * FROM `store_products` WHERE `id` = ? AND `is_active` = 1 LIMIT 1");
-    $stmt->execute([$productId]);
-    $product = $stmt->fetch();
+// Ambil daftar produk yang dibeli (bisa array items dari Keranjang Belanja, atau single product_id)
+$requestedIds = [];
+if (!empty($input['items']) && is_array($input['items'])) {
+    foreach ($input['items'] as $it) {
+        $pid = is_array($it) ? ($it['id'] ?? '') : (is_string($it) ? $it : '');
+        if (!empty($pid)) {
+            $requestedIds[] = trim($pid);
+        }
+    }
+} elseif (!empty($input['product_id'])) {
+    $requestedIds[] = trim($input['product_id']);
+}
 
-    if (!$product) {
+$requestedIds = array_values(array_unique(array_filter($requestedIds)));
+if (empty($requestedIds)) {
+    http_response_code(400);
+    echo json_encode(['success' => false, 'error' => 'Keranjang belanja Anda masih kosong. Silakan pilih e-book terlebih dahulu.']);
+    exit;
+}
+
+try {
+    // Ambil data seluruh produk yang dipilih
+    $placeholders = implode(',', array_fill(0, count($requestedIds), '?'));
+    $stmt = $db->prepare("SELECT * FROM `store_products` WHERE `id` IN ($placeholders) AND `is_active` = 1");
+    $stmt->execute($requestedIds);
+    $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    if (empty($products)) {
         http_response_code(404);
-        echo json_encode(['success' => false, 'error' => 'Produk tidak ditemukan atau tidak aktif.']);
+        echo json_encode(['success' => false, 'error' => 'Produk e-book yang dipilih tidak ditemukan atau sudah tidak aktif.']);
         exit;
     }
 
-    $rawPrice = (float)$product['price'];
+    $rawPrice = 0.00;
+    $itemsData = [];
+    $titles = [];
+    foreach ($products as $p) {
+        $rawPrice += (float)$p['price'];
+        $itemsData[] = [
+            'id' => $p['id'],
+            'title' => $p['title'],
+            'price' => (float)$p['price'],
+            'master_file' => $p['master_file'],
+            'cover_image' => $p['cover_image'],
+            'pages' => (int)$p['pages']
+        ];
+        $titles[] = $p['title'];
+    }
+
+    if (count($products) === 1) {
+        $orderTitle = $products[0]['title'];
+        $primaryProductId = $products[0]['id'];
+    } else {
+        $orderTitle = 'Paket ' . count($products) . ' E-Book: ' . implode(', ', $titles);
+        if (mb_strlen($orderTitle) > 240) {
+            $orderTitle = mb_substr($orderTitle, 0, 237) . '...';
+        }
+        $primaryProductId = implode(',', array_column($products, 'id'));
+    }
+
     $discountAmount = 0.00;
     $appliedCoupon = null;
 
-    // Evaluasi jika ada kupon
+    // Evaluasi jika ada kupon promo
     if (!empty($couponCode)) {
-        $cRes = evaluateCoupon($db, $couponCode, $rawPrice, $productId);
+        $cRes = evaluateCoupon($db, $couponCode, $rawPrice, $products[0]['id']);
         if ($cRes['valid']) {
             $discountAmount = $cRes['discount_amount'];
             $appliedCoupon = $cRes['code'];
@@ -156,15 +202,16 @@ try {
     $finalAmount = max(1000, round($rawPrice - $discountAmount));
     $invoiceNumber = 'RM-' . time() . '-' . substr(bin2hex(random_bytes(3)), 0, 4);
 
-    // Simpan order status PENDING ke basis data
+    // Simpan order status PENDING ke basis data (termasuk items_json)
     $stmtIns = $db->prepare("INSERT INTO `store_orders` 
-        (`invoice_number`, `product_id`, `product_title`, `customer_name`, `customer_email`, `customer_org`, `customer_whatsapp`, `amount`, `coupon_code`, `discount_amount`, `payment_status`)
-        VALUES (:inv, :pid, :title, :name, :email, :org, :wa, :amt, :coupon, :discount, 'PENDING')");
+        (`invoice_number`, `product_id`, `product_title`, `items_json`, `customer_name`, `customer_email`, `customer_org`, `customer_whatsapp`, `amount`, `coupon_code`, `discount_amount`, `payment_status`)
+        VALUES (:inv, :pid, :title, :items, :name, :email, :org, :wa, :amt, :coupon, :discount, 'PENDING')");
 
     $stmtIns->execute([
         ':inv' => $invoiceNumber,
-        ':pid' => $product['id'],
-        ':title' => $product['title'],
+        ':pid' => $primaryProductId,
+        ':title' => $orderTitle,
+        ':items' => json_encode($itemsData, JSON_UNESCAPED_UNICODE),
         ':name' => $name,
         ':email' => $email,
         ':org' => $org,
@@ -180,7 +227,7 @@ try {
     $dokuRes = DokuService::createPayment(
         $invoiceNumber,
         $finalAmount,
-        $product['title'],
+        $orderTitle,
         $name,
         $email
     );

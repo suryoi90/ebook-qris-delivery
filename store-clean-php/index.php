@@ -274,6 +274,17 @@ function renderSafeHtml($html) {
     }
     .btn-detail:hover { background: var(--color-blue-border); color: var(--color-navy-dark); }
 
+    .btn-cart-add-card {
+      padding: 9px 13px; border-radius: 12px;
+      background: var(--color-blue-soft); color: var(--color-cyan); font-size: 12.5px; font-weight: 800;
+      border: 1px solid var(--color-blue-border); cursor: pointer; transition: all 0.15s ease;
+      display: inline-flex; align-items: center; gap: 5px;
+    }
+    .btn-cart-add-card:hover {
+      background: var(--color-cyan); color: #ffffff; border-color: var(--color-cyan);
+      transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0, 174, 255, 0.3);
+    }
+
     /* Modals */
     .modal-overlay {
       position: fixed; inset: 0; background: rgba(11, 27, 61, 0.78);
@@ -431,6 +442,10 @@ function renderSafeHtml($html) {
         </div>
       </div>
       <div class="nav-actions">
+        <button type="button" onclick="CartEngine.open()" class="badge-portal" style="border:none; cursor:pointer; background:linear-gradient(135deg, #0F224A, #00AEFF); color:#ffffff; font-weight:800; gap:8px;">
+          🛒 Keranjang
+          <span class="nav-cart-counter" style="display:none; background:#ef4444; color:#ffffff; font-size:10px; font-weight:900; padding:1px 6px; border-radius:10px; line-height:1.2;">0</span>
+        </button>
         <button type="button" onclick="openOrderCheckModal()" class="badge-portal" style="border:none; cursor:pointer; background:#f1f5f9;">
           🔍 Cek Pesanan
         </button>
@@ -562,12 +577,18 @@ function renderSafeHtml($html) {
                 <?php endif; ?>
                 <div class="card-price-num">Rp <?= number_format($p['price'], 0, ',', '.') ?></div>
               </div>
-              <div style="display:flex; gap:8px;">
-                <a href="<?= $prodUrl ?>" class="btn-detail" style="text-decoration:none; display:inline-flex; align-items:center; gap:4px;">
-                  Detail ➔
-                </a>
+              <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end;">
+                <button type="button" class="btn-cart-add-card" onclick='CartEngine.add(<?= json_encode([
+                  "id" => $p["id"],
+                  "title" => $p["title"],
+                  "price" => (float)$p["price"],
+                  "cover" => $p["cover_image"] ?: "/images/book-cover-450.webp",
+                  "badge" => $p["badge"] ?: $p["category"]
+                ], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>)' title="Tambahkan ke Keranjang">
+                  + 🛒 Keranjang
+                </button>
                 <button class="btn-buy" onclick="openCheckout('<?= htmlspecialchars($p['id']) ?>', '<?= htmlspecialchars(addslashes($p['title'])) ?>', <?= (int)$p['price'] ?>)">
-                  Beli E-Book
+                  Beli Langsung
                 </button>
               </div>
             </div>
@@ -1063,5 +1084,8 @@ function renderSafeHtml($html) {
       }
     } catch(e) {}
   </script>
+
+  <!-- UNIVERSAL CART DRAWER -->
+  <?php include __DIR__ . '/cart-drawer.php'; ?>
 </body>
 </html>

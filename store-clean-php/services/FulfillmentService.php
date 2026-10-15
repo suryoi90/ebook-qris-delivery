@@ -29,44 +29,70 @@ class FulfillmentService
             ];
         }
 
-        $stmtProd = $db->prepare("SELECT * FROM `store_products` WHERE `id` = ? LIMIT 1");
-        $stmtProd->execute([$order['product_id']]);
-        $product = $stmtProd->fetch();
+        // Cek apakah pesanan memiliki multiple items dari keranjang belanja
+        $items = !empty($order['items_json']) ? json_decode($order['items_json'], true) : [];
+        if (empty($items)) {
+            // Fallback pesanan 1 item
+            $stmtProd = $db->prepare("SELECT * FROM `store_products` WHERE `id` = ? LIMIT 1");
+            $stmtProd->execute([$order['product_id']]);
+            $prod = $stmtProd->fetch();
+            if ($prod) {
+                $items = [$prod];
+            }
+        }
 
-        if (!$product) {
+        if (empty($items)) {
             throw new Exception("Produk e-book ({$order['product_id']}) tidak ditemukan di basis data.");
         }
 
-        $watermarkText = sprintf(
-            '“%s” ini karya Restia Moegiono, salinan ini dibuat untuk “%s” | “%s” | “%s”',
-            $product['title'],
-            $order['customer_name'],
-            $order['customer_email'],
-            $order['customer_org'] ?: '-'
-        );
-
         // Generate password 6 karakter acak (huruf kecil a-z atau angka 0-9)
+        // SATU password yang sama digunakan untuk membuka seluruh e-book pada invoice ini
         $pdfPassword = !empty($order['pdf_password']) ? $order['pdf_password'] : self::generateRandomPassword(6);
 
         try {
-            // 1. Eksekusi Stempel Watermark & Proteksi Password AES-256 ke PDF
-            $pdfPath = WatermarkService::stampPdf(
-                $product['master_file'],
-                $product['title'],
-                $order['customer_name'],
-                $order['customer_email'],
-                $order['customer_org'],
-                $invoiceNumber,
-                $pdfPassword
-            );
+            $generatedPdfPaths = [];
+            $watermarkSummary = [];
+            $productTitles = [];
 
-            // 2. Eksekusi Pengiriman Email Berlampiran PDF via SMTP cPanel
+            // 1. Eksekusi Stempel Watermark & Proteksi Password AES-256 untuk Setiap E-Book secara Sekuensial
+            foreach ($items as $item) {
+                $itemTitle = $item['title'];
+                $productTitles[] = $itemTitle;
+
+                $wmText = sprintf(
+                    '“%s” ini karya Restia Moegiono, salinan ini dibuat untuk “%s” | “%s” | “%s”',
+                    $itemTitle,
+                    $order['customer_name'],
+                    $order['customer_email'],
+                    $order['customer_org'] ?: '-'
+                );
+                $watermarkSummary[] = $wmText;
+
+                $pdfPath = WatermarkService::stampPdf(
+                    $item['master_file'],
+                    $itemTitle,
+                    $order['customer_name'],
+                    $order['customer_email'],
+                    $order['customer_org'],
+                    $invoiceNumber,
+                    $pdfPassword
+                );
+
+                $generatedPdfPaths[] = $pdfPath;
+            }
+
+            // Gabungkan judul produk untuk subjek & body email
+            $displayTitle = count($productTitles) === 1 
+                ? $productTitles[0] 
+                : ('Paket ' . count($productTitles) . ' E-Book: ' . implode(', ', $productTitles));
+
+            // 2. Eksekusi Pengiriman Email Berlampiran Seluruh PDF via SMTP cPanel
             MailService::sendEbook(
                 $order['customer_email'],
                 $order['customer_name'],
-                $product['title'],
+                $displayTitle,
                 $invoiceNumber,
-                $pdfPath,
+                $generatedPdfPaths,
                 $pdfPassword
             );
 
@@ -83,8 +109,8 @@ class FulfillmentService
 
             $upd->execute([
                 ':pwd' => $pdfPassword,
-                ':pdf' => $pdfPath,
-                ':wm' => $watermarkText,
+                ':pdf' => count($generatedPdfPaths) === 1 ? $generatedPdfPaths[0] : json_encode($generatedPdfPaths),
+                ':wm' => implode("\n", $watermarkSummary),
                 ':id' => $order['id']
             ]);
 
