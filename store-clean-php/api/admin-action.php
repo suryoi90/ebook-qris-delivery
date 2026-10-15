@@ -20,12 +20,15 @@ $action = trim($_GET['action'] ?? ($_POST['action'] ?? ''));
 try {
     $db = StoreDB::get();
 
-    // Auto-migration: pastikan items_json ada di store_orders
+    // Auto-migration: pastikan items_json ada di store_orders dan tipe kolom mencukupi multi-item
     try {
         $colCheck = $db->query("SHOW COLUMNS FROM `store_orders` LIKE 'items_json'")->fetch();
         if (!$colCheck) {
             $db->exec("ALTER TABLE `store_orders` ADD COLUMN `items_json` LONGTEXT DEFAULT NULL AFTER `product_title`");
         }
+        $db->exec("ALTER TABLE `store_orders` MODIFY COLUMN `watermarked_file` TEXT DEFAULT NULL");
+        $db->exec("ALTER TABLE `store_orders` MODIFY COLUMN `drm_watermark_text` TEXT DEFAULT NULL");
+        $db->exec("ALTER TABLE `store_orders` MODIFY COLUMN `product_title` VARCHAR(500) DEFAULT NULL");
     } catch (Exception $eMig) {}
 
     // 0. Ekspor Laporan CSV

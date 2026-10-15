@@ -19,11 +19,14 @@ class MailService
         string $toName,
         string $productTitle,
         string $invoiceNumber,
-        string $pdfAttachmentPath,
+        $pdfAttachmentPath,
         string $pdfPassword = ''
     ): bool {
-        if (!file_exists($pdfAttachmentPath)) {
-            throw new Exception("Berkas lampiran tidak ditemukan: {$pdfAttachmentPath}");
+        $attachments = is_array($pdfAttachmentPath) ? $pdfAttachmentPath : [$pdfAttachmentPath];
+        foreach ($attachments as $att) {
+            if (!file_exists($att)) {
+                throw new Exception("Berkas lampiran tidak ditemukan: {$att}");
+            }
         }
 
         $mail = new PHPMailer(true);

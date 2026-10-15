@@ -132,7 +132,7 @@ class FulfillmentService
                 'success' => true,
                 'message' => 'Watermark dan password PDF berhasil dipasang serta email telah dikirimkan ke pembeli!',
                 'invoice' => $invoiceNumber,
-                'pdf_path' => $pdfPath,
+                'pdf_path' => count($generatedPdfPaths) === 1 ? $generatedPdfPaths[0] : $generatedPdfPaths,
                 'pdf_password' => $pdfPassword
             ];
 

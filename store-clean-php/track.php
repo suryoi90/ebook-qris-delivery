@@ -3,7 +3,7 @@ require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/db.php';
 
 $db = StoreDB::get();
-$searchQuery = trim($_GET['q'] ?? '');
+$searchQuery = trim($_GET['q'] ?? ($_GET['invoice'] ?? ''));
 $orders = [];
 $searched = false;
 
@@ -13,9 +13,9 @@ if (!empty($searchQuery)) {
         $stmt = $db->prepare("SELECT o.*, p.title as prod_title, p.cover_image, p.version, p.pages, p.slug as prod_slug 
             FROM `store_orders` o
             LEFT JOIN `store_products` p ON o.product_id = p.id
-            WHERE o.invoice_number = :q OR o.customer_email = :q
+            WHERE o.invoice_number = :inv OR o.customer_email = :email
             ORDER BY o.created_at DESC LIMIT 20");
-        $stmt->execute(['q' => $searchQuery]);
+        $stmt->execute(['inv' => $searchQuery, 'email' => $searchQuery]);
         $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (Exception $e) {
         $orders = [];
