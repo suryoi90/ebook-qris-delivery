@@ -1,0 +1,13 @@
+# Restia Moegiono Online Academy - URL Rewrite Configuration
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /course/
+
+  # Jangan rewrite jika file atau direktori fisik ada di disk
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  # Rewrite /course/{slug} -> /course/index.php?c={slug}
+  RewriteRule ^([^/]+)/?$ index.php?c=$1 [L,QSA]
+</IfModule>

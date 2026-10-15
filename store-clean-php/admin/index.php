@@ -937,53 +937,55 @@ $hasActiveOtp = !empty($_SESSION['store_admin_otp']) && time() < ($_SESSION['sto
 
     <!-- TAB DEDIKASI: MATERI KURSUS LMS -->
     <div id="tabCourse" style="display:none; margin-bottom:32px;">
+      <!-- TOP: KATALOG & MANAJEMEN PROGRAM KURSUS -->
       <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:20px; padding:22px 28px; margin-bottom:24px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
         <div>
           <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
-            <span style="background:#0284c7; color:#fff; font-size:11px; font-weight:900; padding:2px 8px; border-radius:6px;">LMS MASTERCLASS</span>
-            <h2 style="font-size:20px; font-weight:900; color:#0f172a; margin:0;">Manajemen Kurikulum &amp; Materi Pelajaran LMS</h2>
+            <span style="background:#0284c7; color:#fff; font-size:11px; font-weight:900; padding:2px 8px; border-radius:6px;">LMS ACADEMY</span>
+            <h2 style="font-size:20px; font-weight:900; color:#0f172a; margin:0;">Katalog &amp; Manajemen Program Kursus</h2>
           </div>
           <p style="font-size:13px; color:#64748b; margin:0;">
-            Kelola 4 Modul, 12 Bab Materi, ID Video YouTube, dan Catatan Kuliah interaktif.
+            Kelola setiap program kursus, buat halaman publik baru dengan URL mandiri, harga promo, instruktur, dan tautan ruang belajar.
           </p>
         </div>
         <div style="display:flex; gap:10px; flex-wrap:wrap;">
-          <a href="https://restiamoegiono.com/course/learn.php" target="_blank" class="btn-action-sm" style="background:#f0f9ff; color:#0284c7; border-color:#bae6fd; font-weight:800;">
-            🌐 Lihat Ruang Belajar Siswa ↗
-          </a>
-          <button type="button" class="btn-primary-form" onclick="openLmsLessonModal(0)">
-            ➕ Tambah Bab / Materi Baru
+          <button type="button" class="btn-primary-form" onclick="openCourseModal(0)" style="background:#059669; padding:9px 18px; font-size:13px; font-weight:800; display:inline-flex; align-items:center; gap:6px;">
+            <span>➕</span> Tambah Kursus Baru
           </button>
+          <a href="https://restiamoegiono.com/course/" target="_blank" class="btn-action-sm" style="background:#f0f9ff; color:#0284c7; border-color:#bae6fd; font-weight:800;">
+            🌐 Portal Akademi ↗
+          </a>
           <button type="button" class="btn-action-sm" onclick="loadAdminData()">
             🔄 Muat Ulang Data
           </button>
         </div>
       </div>
 
-      <!-- KARTU OVERVIEW PROGRAM KELAS -->
-      <div style="background:linear-gradient(135deg, #0f172a, #1e293b); color:#ffffff; border-radius:18px; padding:24px 28px; margin-bottom:24px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
+      <!-- CONTAINER DAFTAR KURSUS DENGAN URL MASING-MASING -->
+      <div id="lmsCoursesAdminContainer" class="product-grid" style="margin-bottom:32px;">
+        <div style="text-align:center; padding:30px; color:#64748b; background:#fff; border-radius:16px; border:1px solid #e2e8f0;">
+          Memuat daftar program kursus...
+        </div>
+      </div>
+
+      <!-- SECTION KURIKULUM & MATERI BAB -->
+      <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:20px; padding:22px 28px; margin-bottom:24px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
         <div>
-          <span style="font-size:11px; font-weight:800; color:#38bdf8; background:rgba(56, 189, 248, 0.15); padding:3px 10px; border-radius:20px; border:1px solid rgba(56, 189, 248, 0.3);">
-            PROGRAM UNGGULAN 2026
-          </span>
-          <h3 style="font-size:18px; font-weight:900; color:#ffffff; margin:8px 0 4px;">Masterclass Implementasi &amp; Lead Auditor ISO 27001:2022</h3>
-          <p style="font-size:12px; color:#94a3b8; margin:0; max-width:680px; line-height:1.5;">
-            Panduan Praktis Desain ISMS, Gap Analysis, Risk Treatment, &amp; Harmonisasi Kepatuhan UU PDP No. 27/2022 karya Restia Moegiono.
+          <h3 style="font-size:18px; font-weight:900; color:#0f172a; margin:0 0 4px;">Kurikulum &amp; Materi Pembelajaran Bab</h3>
+          <p style="font-size:13px; color:#64748b; margin:0;">
+            Kelola modul, video materi YouTube HD, dan catatan kuliah interaktif dengan editor visual WYSIWYG.
           </p>
         </div>
-        <div style="display:flex; gap:20px; font-size:12px; border-left:1px solid rgba(255,255,255,0.1); padding-left:20px;">
-          <div>
-            <div style="color:#94a3b8;">Total Materi</div>
-            <div style="font-size:16px; font-weight:900; color:#38bdf8;" id="courseOverviewLessons">12 Bab</div>
+        <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+          <div style="display:flex; align-items:center; gap:6px;">
+            <label style="font-size:12px; font-weight:700; color:#475569;">Filter Kursus:</label>
+            <select id="lmsCurriculumCourseFilter" class="form-control" style="font-size:12px; padding:6px 12px; min-width:200px;" onchange="filterCurriculumByCourse(this.value)">
+              <option value="all">Semua Program Kursus</option>
+            </select>
           </div>
-          <div>
-            <div style="color:#94a3b8;">Total Modul</div>
-            <div style="font-size:16px; font-weight:900; color:#ffffff;">4 Modul</div>
-          </div>
-          <div>
-            <div style="color:#94a3b8;">Harga Masuk</div>
-            <div style="font-size:16px; font-weight:900; color:#34d399;">Rp 499.000</div>
-          </div>
+          <button type="button" class="btn-primary-form" onclick="openLmsLessonModal(0)" style="padding:9px 16px; font-size:13px;">
+            ➕ Tambah Bab / Materi Baru
+          </button>
         </div>
       </div>
 
@@ -1340,10 +1342,27 @@ $hasActiveOtp = !empty($_SESSION['store_admin_otp']) && time() < ($_SESSION['sto
 
       <!-- SUB-TABS LMS -->
       <div style="display:flex; gap:8px; padding: 0 24px 14px; border-bottom: 1px solid #e2e8f0; flex-wrap:wrap;">
+        <button type="button" class="tab-btn" id="btnSubLmsCourses" onclick="switchLmsSubTab('courses', this)">🎓 Program Kursus (<span id="lmsCountCourses">0</span>)</button>
         <button type="button" class="tab-btn active" id="btnSubLmsStudents" onclick="switchLmsSubTab('students', this)">👥 Daftar Siswa &amp; Progres (<span id="lmsCountStudents">0</span>)</button>
         <button type="button" class="tab-btn" id="btnSubLmsLessons" onclick="switchLmsSubTab('lessons', this)">📖 Kurikulum &amp; Materi Bab (<span id="lmsCountLessons">0</span>)</button>
         <button type="button" class="tab-btn" id="btnSubLmsDiscussions" onclick="switchLmsSubTab('discussions', this)">💬 Tanya Jawab Siswa (<span id="lmsCountDiscussions">0</span>)</button>
         <button type="button" class="tab-btn" id="btnSubLmsQuizzes" onclick="switchLmsSubTab('quizzes', this)">📝 Riwayat Kuis (<span id="lmsCountQuizzes">0</span>)</button>
+      </div>
+
+      <!-- SUB-TAB 0: PROGRAM KURSUS -->
+      <div id="lmsSubCourses" style="display:none; padding: 20px 24px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; flex-wrap:wrap; gap:12px;">
+          <div>
+            <h4 style="font-size:16px; font-weight:800; color:#0f172a; margin:0;">Daftar Program Kursus Masterclass</h4>
+            <p style="font-size:12px; color:#64748b; margin:4px 0 0;">Setiap kursus memiliki halaman publik mandiri dengan tautan unik dan integrasi checkout DOKU.</p>
+          </div>
+          <button type="button" class="btn-primary-form" onclick="openCourseModal(0)" style="padding:9px 16px; font-size:13px; font-weight:800; background:#059669; display:inline-flex; align-items:center; gap:6px;">
+            <span>➕</span> Tambah Kursus Baru
+          </button>
+        </div>
+        <div id="lmsCoursesContainerSub" class="product-grid">
+          <!-- Rendered by JS -->
+        </div>
       </div>
 
       <!-- SUB-TAB 1: SISWA & PROGRES -->
@@ -1753,7 +1772,12 @@ $hasActiveOtp = !empty($_SESSION['store_admin_otp']) && time() < ($_SESSION['sto
       <div class="modal-body" style="overflow-y:auto; flex:1;">
         <form id="lmsLessonForm" onsubmit="handleSaveLmsLesson(event)">
           <input type="hidden" id="lmsLessonId" name="id" value="0">
-          <input type="hidden" id="lmsLessonCourseId" name="course_id" value="1">
+          <div class="form-group" style="margin-bottom:14px;">
+            <label class="form-label">Pilih Program Kursus Terkait</label>
+            <select id="lmsLessonCourseId" name="course_id" class="form-control">
+              <option value="1">Masterclass Implementasi &amp; Lead Auditor ISO 27001:2022</option>
+            </select>
+          </div>
 
           <div class="grid-2col" style="margin-bottom:14px;">
             <div class="form-group" style="margin:0;">
@@ -1833,6 +1857,123 @@ $hasActiveOtp = !empty($_SESSION['store_admin_otp']) && time() < ($_SESSION['sto
       </div>
     </div>
   </div>
+
+  <!-- MODAL EDIT / TAMBAH PROGRAM KURSUS LMS -->
+  <div class="modal-backdrop" id="courseEditorModal" style="display:none;">
+    <div class="modal-box" style="max-width:860px; max-height:92vh; display:flex; flex-direction:column;">
+      <div class="modal-header">
+        <div>
+          <h2 class="modal-title" id="courseModalTitle" style="font-size:18px; font-weight:900; margin:0;">Edit Program Kursus</h2>
+          <p style="font-size:12px; color:#64748b; margin:4px 0 0;">Atur halaman publik kursus, slug URL mandiri, harga promo, instruktur, dan status publikasi.</p>
+        </div>
+        <button type="button" onclick="closeCourseModal()" style="width:34px; height:34px; border-radius:50%; border:none; background:#f1f5f9; color:#64748b; font-size:18px; font-weight:700; cursor:pointer;">&times;</button>
+      </div>
+
+      <div class="modal-body" style="overflow-y:auto; flex:1;">
+        <form id="courseEditForm" onsubmit="handleSaveCourse(event)">
+          <input type="hidden" id="courseEditId" name="id" value="0">
+
+          <!-- SLUG & LIVE URL PREVIEW -->
+          <div class="form-group" style="margin-bottom:14px; background:#f0f9ff; border:1px solid #bae6fd; border-radius:12px; padding:14px;">
+            <label class="form-label" style="color:#0369a1; font-weight:800;">Slug URL Halaman Kursus (Mandiri &amp; Unik)</label>
+            <div style="display:flex; gap:10px; align-items:center;">
+              <span style="font-family:monospace; font-size:13px; color:#475569; font-weight:700;">https://restiamoegiono.com/course/</span>
+              <input type="text" id="courseEditSlug" name="slug" required class="form-control" style="font-family:monospace; font-weight:700; color:#0284c7; flex:1;" placeholder="cth: lead-auditor-iso-27001" oninput="updateCourseSlugLivePreview(this.value)">
+            </div>
+            <div style="font-size:11px; color:#0284c7; margin-top:6px; font-weight:600;">
+              🌐 Pratinjau Tautan Publik: <b id="courseSlugLiveUrl" style="font-family:monospace;">https://restiamoegiono.com/course/...</b>
+            </div>
+          </div>
+
+          <div class="grid-2col" style="margin-bottom:14px;">
+            <div class="form-group" style="margin:0;">
+              <label class="form-label">Judul Lengkap Kursus</label>
+              <input type="text" id="courseEditTitle" name="title" required class="form-control" placeholder="Contoh: Masterclass Implementasi ISO 27001:2022" oninput="autoSuggestCourseSlug(this.value)">
+            </div>
+            <div class="form-group" style="margin:0;">
+              <label class="form-label">Kategori Kursus</label>
+              <input type="text" id="courseEditCategory" name="category" required class="form-control" placeholder="Contoh: Keamanan Informasi & Privasi Data">
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-bottom:14px;">
+            <label class="form-label">Subjudul / Ringkasan Deskripsi 1 Kalimat</label>
+            <input type="text" id="courseEditSubtitle" name="subtitle" class="form-control" placeholder="Panduan Praktis Desain ISMS, Gap Analysis, Risk Treatment...">
+          </div>
+
+          <div class="grid-3col" style="margin-bottom:14px;">
+            <div class="form-group" style="margin:0;">
+              <label class="form-label">Badge Label Kursus</label>
+              <input type="text" id="courseEditBadge" name="badge" class="form-control" placeholder="EXECUTIVE MASTERCLASS">
+            </div>
+            <div class="form-group" style="margin:0;">
+              <label class="form-label">Harga Pendaftaran (Rp)</label>
+              <input type="number" id="courseEditPrice" name="price" required class="form-control" placeholder="499000">
+            </div>
+            <div class="form-group" style="margin:0;">
+              <label class="form-label">Harga Coret Asli (Rp)</label>
+              <input type="number" id="courseEditOldPrice" name="old_price" class="form-control" placeholder="1499000">
+            </div>
+          </div>
+
+          <div class="grid-3col" style="margin-bottom:14px;">
+            <div class="form-group" style="margin:0;">
+              <label class="form-label">Total Durasi Pembelajaran</label>
+              <input type="text" id="courseEditDuration" name="total_duration" class="form-control" placeholder="4 Jam 30 Menit">
+            </div>
+            <div class="form-group" style="margin:0;">
+              <label class="form-label">Total Bab Materi</label>
+              <input type="number" id="courseEditLessons" name="total_lessons" min="1" class="form-control" placeholder="12">
+            </div>
+            <div class="form-group" style="margin:0;">
+              <label class="form-label">Status Penayangan</label>
+              <select id="courseEditIsPublished" name="is_published" class="form-control">
+                <option value="1">✓ Terbitkan &amp; Buka Halaman Publik</option>
+                <option value="0">✕ Draf (Sembunyikan dari Publik)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid-2col" style="margin-bottom:14px;">
+            <div class="form-group" style="margin:0;">
+              <label class="form-label">Nama Instruktur / Pemateri</label>
+              <input type="text" id="courseEditInstructorName" name="instructor_name" required class="form-control" placeholder="Restia Moegiono">
+            </div>
+            <div class="form-group" style="margin:0;">
+              <label class="form-label">Gelar / Jabatan Instruktur</label>
+              <input type="text" id="courseEditInstructorTitle" name="instructor_title" class="form-control" placeholder="Lead Auditor ISO 27001 & Data Privacy Practitioner">
+            </div>
+          </div>
+
+          <div class="grid-2col" style="margin-bottom:14px;">
+            <div class="form-group" style="margin:0;">
+              <label class="form-label">URL Foto Avatar Instruktur</label>
+              <input type="text" id="courseEditInstructorAvatar" name="instructor_avatar" class="form-control" placeholder="/images/author-restia-formal.webp">
+            </div>
+            <div class="form-group" style="margin:0;">
+              <label class="form-label">URL Gambar Sampul / Cover Kursus</label>
+              <input type="text" id="courseEditCoverImage" name="cover_image" class="form-control" placeholder="/images/iso-27001-cover.webp">
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-bottom:14px;">
+            <label class="form-label">Biografi Singkat Instruktur</label>
+            <textarea id="courseEditInstructorBio" name="instructor_bio" class="form-control" rows="2" placeholder="Praktisi dan konsultan sistem manajemen keamanan informasi..."></textarea>
+          </div>
+
+          <div class="form-group" style="margin-bottom:14px;">
+            <label class="form-label">Deskripsi Lengkap / Silabus Program</label>
+            <textarea id="courseEditDescription" name="description" class="form-control" rows="4" placeholder="Penjelasan silabus, capaian pembelajaran, instrumen audit yang didapatkan..."></textarea>
+          </div>
+
+          <div class="modal-footer" style="padding:16px 0 0; background:transparent;">
+            <button type="button" onclick="closeCourseModal()" class="btn-action-sm">Batal</button>
+            <button type="submit" id="btnSubmitCourse" class="btn-primary-form">💾 Simpan Program Kursus</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
   <script src="/assets/vendor/quill/quill.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
 
@@ -1842,6 +1983,8 @@ $hasActiveOtp = !empty($_SESSION['store_admin_otp']) && time() < ($_SESSION['sto
     let cachedCoupons = [];
     let cachedMasters = [];
     let cachedSettings = {};
+    let cachedCourses = [];
+    let activeCurriculumCourseFilter = 'all';
     let productQuill = null;
     let heroDescQuill = null;
     let lmsLessonQuill = null;
@@ -2319,6 +2462,56 @@ $hasActiveOtp = !empty($_SESSION['store_admin_otp']) && time() < ($_SESSION['sto
             bContainer.appendChild(card);
           });
 
+          // Render Program Kursus LMS & Update Dropdown
+          if (data.lms_courses) {
+            cachedCourses = data.lms_courses;
+            renderCourses(data.lms_courses);
+            const countC = document.getElementById('lmsCountCourses');
+            if (countC) countC.innerText = data.lms_courses.length;
+
+            // Update dropdown filter kursus di kurikulum
+            const filterSel = document.getElementById('lmsCurriculumCourseFilter');
+            if (filterSel) {
+              const currentVal = filterSel.value;
+              filterSel.innerHTML = '<option value="all">Semua Program Kursus</option>';
+              data.lms_courses.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.id;
+                opt.innerText = c.title;
+                filterSel.appendChild(opt);
+              });
+              if (currentVal) filterSel.value = currentVal;
+            }
+
+            // Update dropdown kursus di modal materi bab
+            const lessonCourseSel = document.getElementById('lmsLessonCourseId');
+            if (lessonCourseSel) {
+              const currLessonCourse = lessonCourseSel.value;
+              lessonCourseSel.innerHTML = '';
+              data.lms_courses.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.id;
+                opt.innerText = c.title;
+                lessonCourseSel.appendChild(opt);
+              });
+              if (currLessonCourse) lessonCourseSel.value = currLessonCourse;
+            }
+
+            // Update dropdown kursus di form enroll manual
+            const manualCourseSel = document.getElementById('manualCourseId');
+            if (manualCourseSel) {
+              const currManual = manualCourseSel.value;
+              manualCourseSel.innerHTML = '';
+              data.lms_courses.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.id;
+                opt.innerText = c.title;
+                manualCourseSel.appendChild(opt);
+              });
+              if (currManual) manualCourseSel.value = currManual;
+            }
+          }
+
           // Render Siswa LMS Akademi
           if (data.lms_students) {
             renderLmsTable(data.lms_students);
@@ -2338,7 +2531,11 @@ $hasActiveOtp = !empty($_SESSION['store_admin_otp']) && time() < ($_SESSION['sto
           if (data.lms_modules) cachedLmsModules = data.lms_modules;
           if (data.lms_lessons) {
             cachedLmsLessons = data.lms_lessons;
-            renderLmsLessons(data.lms_modules, data.lms_lessons);
+            let displayLessons = data.lms_lessons;
+            if (activeCurriculumCourseFilter && activeCurriculumCourseFilter !== 'all') {
+              displayLessons = data.lms_lessons.filter(l => String(l.course_id) === String(activeCurriculumCourseFilter));
+            }
+            renderLmsLessons(data.lms_modules, displayLessons);
             const countL = document.getElementById('lmsCountLessons');
             if (countL) countL.innerText = data.lms_lessons.length;
           }
@@ -2472,6 +2669,8 @@ $hasActiveOtp = !empty($_SESSION['store_admin_otp']) && time() < ($_SESSION['sto
         if (target) target.classList.add('active');
       }
 
+      const subCourses = document.getElementById('lmsSubCourses');
+      if (subCourses) subCourses.style.display = (sub === 'courses') ? 'block' : 'none';
       document.getElementById('lmsSubStudents').style.display = (sub === 'students') ? 'block' : 'none';
       document.getElementById('lmsSubLessons').style.display = (sub === 'lessons') ? 'block' : 'none';
       document.getElementById('lmsSubDiscussions').style.display = (sub === 'discussions') ? 'block' : 'none';
@@ -2520,6 +2719,10 @@ $hasActiveOtp = !empty($_SESSION['store_admin_otp']) && time() < ($_SESSION['sto
               ? '<span style="font-size:10px; font-weight:800; color:#059669; background:#ecfdf5; padding:2px 8px; border-radius:6px;">✨ Ada Catatan</span>'
               : '<span style="font-size:10px; font-weight:700; color:#94a3b8; background:#f8fafc; padding:2px 8px; border-radius:6px;">- Tanpa Catatan</span>';
 
+            const courseObj = cachedCourses.find(c => c.id == l.course_id);
+            const courseSlug = courseObj ? courseObj.slug : 'iso-27001-masterclass';
+            const learnUrl = `https://restiamoegiono.com/course/learn.php?course=${encodeURIComponent(courseSlug)}&lesson=${encodeURIComponent(l.slug)}`;
+
             lessonsRows += `
               <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 14px; border-bottom:1px solid #f1f5f9; gap:12px; flex-wrap:wrap;">
                 <div style="display:flex; align-items:center; gap:12px; flex:1; min-width:260px;">
@@ -2535,7 +2738,7 @@ $hasActiveOtp = !empty($_SESSION['store_admin_otp']) && time() < ($_SESSION['sto
                   </div>
                 </div>
                 <div style="display:flex; gap:8px; align-items:center;">
-                  <a href="https://restiamoegiono.com/course/learn.php?lesson=${encodeURIComponent(l.slug)}" target="_blank" class="btn-action-sm" style="padding:7px 12px; font-size:11px; text-decoration:none;" title="Pratinjau di Ruang Belajar Siswa">
+                  <a href="${learnUrl}" target="_blank" class="btn-action-sm" style="padding:7px 12px; font-size:11px; text-decoration:none;" title="Pratinjau di Ruang Belajar Siswa">
                     👁️ Pratinjau ↗
                   </a>
                   <button type="button" class="btn-primary-form" style="padding:7px 14px; font-size:12px; font-weight:800; display:inline-flex; align-items:center; gap:4px;" onclick="openLmsLessonModal(${l.id})">
@@ -2609,7 +2812,7 @@ $hasActiveOtp = !empty($_SESSION['store_admin_otp']) && time() < ($_SESSION['sto
         titleEl.innerText = 'Edit Materi Bab: ' + l.title;
       } else {
         document.getElementById('lmsLessonId').value = '0';
-        document.getElementById('lmsLessonCourseId').value = '1';
+        document.getElementById('lmsLessonCourseId').value = (activeCurriculumCourseFilter && activeCurriculumCourseFilter !== 'all') ? activeCurriculumCourseFilter : (cachedCourses[0]?.id || 1);
         document.getElementById('lmsLessonTitle').value = '';
         document.getElementById('lmsLessonSlug').value = '';
         document.getElementById('lmsLessonDuration').value = '15:00';
@@ -3558,6 +3761,256 @@ $hasActiveOtp = !empty($_SESSION['store_admin_otp']) && time() < ($_SESSION['sto
       } finally {
         btn.disabled = false;
         btn.innerText = '💾 Simpan & Terapkan Perubahan Hero';
+      }
+    }
+
+    // ==========================================
+    // MANAJEMEN PROGRAM KURSUS & HALAMAN MANDIRI
+    // ==========================================
+    function renderCourses(courses) {
+      const container1 = document.getElementById('lmsCoursesAdminContainer');
+      const container2 = document.getElementById('lmsCoursesContainerSub');
+      const targets = [container1, container2].filter(c => c !== null);
+      if (targets.length === 0) return;
+
+      if (!courses || courses.length === 0) {
+        targets.forEach(t => {
+          t.innerHTML = '<div style="text-align:center; padding:30px; color:#64748b; background:#fff; border-radius:16px; border:1px solid #e2e8f0; grid-column:1/-1;">Belum ada program kursus terdaftar. Silakan klik "+ Tambah Kursus Baru".</div>';
+        });
+        return;
+      }
+
+      targets.forEach(t => { t.innerHTML = ''; });
+
+      courses.forEach(c => {
+        const isPub = (c.is_published == 1);
+        const pubStatusHtml = isPub 
+          ? '<span class="status-badge status-paid" style="background:#dcfce7; color:#166534; border:1px solid #86efac; font-weight:800;">✓ Dipublikasikan (Aktif)</span>'
+          : '<span class="status-badge status-inactive" style="background:#fee2e2; color:#b91c1c; border:1px solid #fecaca; font-weight:800;">✕ Draf (Disembunyikan)</span>';
+        
+        const publicCourseUrl = `https://restiamoegiono.com/course/${encodeURIComponent(c.slug || c.id)}`;
+        const learnCourseUrl = `https://restiamoegiono.com/course/learn.php?course=${encodeURIComponent(c.slug || c.id)}`;
+        const escapeTitle = (c.title || '').replace(/'/g, "\\'");
+
+        const cardHtml = `
+          <div class="product-card-admin" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:20px; padding:22px; box-shadow:0 4px 14px rgba(0,0,0,0.02); display:flex; flex-direction:column; justify-content:space-between;">
+            <div>
+              <div class="item-header" style="margin-bottom:12px;">
+                <div>
+                  <div style="display:flex; align-items:center; gap:6px; margin-bottom:6px; flex-wrap:wrap;">
+                    <span class="status-badge" style="background:#e0f2fe; color:#0369a1; border:1px solid #bae6fd; font-weight:800; font-size:10px;">
+                      ${c.category || 'Keamanan Informasi'}
+                    </span>
+                    ${c.badge ? `<span class="item-badge" style="background:#fef3c7; color:#92400e; border:1px solid #fde68a; font-weight:800; font-size:10px;">${c.badge}</span>` : ''}
+                    ${pubStatusHtml}
+                  </div>
+                  <h3 class="item-title" style="font-size:16px; font-weight:900; color:#0f172a; margin:0 0 4px; line-height:1.4;">${c.title}</h3>
+                  ${c.subtitle ? `<div style="font-size:12px; color:#64748b; line-height:1.4;">${c.subtitle}</div>` : ''}
+                </div>
+              </div>
+
+              <!-- URL TAUTAN PUBLIK & RUANG BELAJAR -->
+              <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:12px 14px; font-size:12px; margin-bottom:14px;">
+                <div style="margin-bottom:10px;">
+                  <div style="font-size:10px; font-weight:800; color:#475569; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:3px;">🔗 URL Halaman Publik Kursus:</div>
+                  <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
+                    <a href="${publicCourseUrl}" target="_blank" style="color:#0284c7; text-decoration:none; font-family:monospace; font-size:11px; font-weight:700; word-break:break-all;" title="Kunjungi Halaman Kursus">
+                      ${publicCourseUrl}
+                    </a>
+                    <button type="button" class="btn-action-sm" style="padding:2px 8px; font-size:11px; flex-shrink:0;" onclick="copyCourseUrl('${publicCourseUrl}')" title="Salin URL Halaman Kursus">📋 Salin</button>
+                  </div>
+                </div>
+                <div>
+                  <div style="font-size:10px; font-weight:800; color:#475569; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:3px;">🎓 URL Ruang Belajar (Classroom):</div>
+                  <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
+                    <a href="${learnCourseUrl}" target="_blank" style="color:#059669; text-decoration:none; font-family:monospace; font-size:11px; font-weight:700; word-break:break-all;" title="Kunjungi Ruang Belajar">
+                      ${learnCourseUrl}
+                    </a>
+                    <button type="button" class="btn-action-sm" style="padding:2px 8px; font-size:11px; flex-shrink:0;" onclick="copyCourseUrl('${learnCourseUrl}')" title="Salin URL Ruang Belajar">📋 Salin</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- METRIK & SPESIFIKASI KURSUS -->
+              <div style="background:#f1f5f9; border-radius:12px; padding:12px 14px; font-size:12px; margin-bottom:16px;">
+                <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                  <span style="color:#64748b;">Instruktur:</span>
+                  <b>${c.instructor_name || 'Restia Moegiono'}</b>
+                </div>
+                <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                  <span style="color:#64748b;">Materi &amp; Durasi:</span>
+                  <b>${c.total_lessons || 12} Bab &bull; ${c.total_duration || '4 Jam'}</b>
+                </div>
+                <div style="display:flex; justify-content:space-between;">
+                  <span style="color:#64748b;">Biaya Pendaftaran:</span>
+                  <b style="color:#0f172a;">Rp ${Number(c.price).toLocaleString('id-ID')} ${c.old_price > c.price ? `<span style="color:#94a3b8; text-decoration:line-through; font-weight:normal; font-size:11px;">(Rp ${Number(c.old_price).toLocaleString('id-ID')})</span>` : ''}</b>
+                </div>
+              </div>
+            </div>
+
+            <!-- TOMBOL AKSI -->
+            <div style="display:flex; gap:6px; flex-wrap:wrap; border-top:1px solid #f1f5f9; padding-top:14px;">
+              <button type="button" class="btn-primary-form" style="flex:1; min-width:85px; text-align:center; padding:8px 10px; font-size:12px;" onclick="openCourseModal(${c.id})">✏️ Edit Kursus</button>
+              <a href="${publicCourseUrl}" target="_blank" class="btn-action-sm" style="display:inline-flex; align-items:center; gap:4px; text-decoration:none; padding:8px 10px; font-size:12px; font-weight:700;" title="Buka Halaman Publik Kursus">👁️ Buka Halaman ↗</a>
+              <a href="${learnCourseUrl}" target="_blank" class="btn-action-sm" style="display:inline-flex; align-items:center; gap:4px; text-decoration:none; padding:8px 10px; font-size:12px; font-weight:700; background:#ecfdf5; color:#047857; border-color:#a7f3d0;" title="Buka Ruang Belajar">🎓 Ruang Belajar ↗</a>
+              <button type="button" class="btn-action-sm" style="color:#b91c1c; padding:8px 10px;" onclick="deleteCourse(${c.id}, '${escapeTitle}')" title="Hapus Program Kursus">🗑️</button>
+            </div>
+          </div>
+        `;
+        targets.forEach(t => { t.insertAdjacentHTML('beforeend', cardHtml); });
+      });
+    }
+
+    function filterCurriculumByCourse(courseId) {
+      activeCurriculumCourseFilter = courseId;
+      let filtered = cachedLmsLessons;
+      if (courseId !== 'all') {
+        filtered = cachedLmsLessons.filter(l => String(l.course_id) === String(courseId));
+      }
+      renderLmsLessons(cachedLmsModules, filtered);
+    }
+
+    function copyCourseUrl(url) {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url).then(() => {
+          showToast('✓ Tautan disalin: ' + url);
+        }).catch(() => {
+          prompt('Salin tautan:', url);
+        });
+      } else {
+        prompt('Salin tautan:', url);
+      }
+    }
+
+    function openCourseModal(id) {
+      const modal = document.getElementById('courseEditorModal');
+      if (!modal) return;
+      const form = document.getElementById('courseEditForm');
+      if (!form) return;
+      form.reset();
+
+      if (id > 0) {
+        const c = cachedCourses.find(x => x.id == id);
+        if (!c) return;
+        document.getElementById('courseEditId').value = c.id;
+        document.getElementById('courseEditTitle').value = c.title || '';
+        document.getElementById('courseEditSlug').value = c.slug || '';
+        document.getElementById('courseEditSubtitle').value = c.subtitle || '';
+        document.getElementById('courseEditCategory').value = c.category || 'Keamanan Informasi';
+        document.getElementById('courseEditBadge').value = c.badge || 'EXECUTIVE MASTERCLASS';
+        document.getElementById('courseEditPrice').value = Math.round(Number(c.price || 499000));
+        document.getElementById('courseEditOldPrice').value = Math.round(Number(c.old_price || 1499000));
+        document.getElementById('courseEditDuration').value = c.total_duration || '4 Jam 30 Menit';
+        document.getElementById('courseEditLessons').value = c.total_lessons || 12;
+        document.getElementById('courseEditInstructorName').value = c.instructor_name || 'Restia Moegiono';
+        document.getElementById('courseEditInstructorTitle').value = c.instructor_title || 'Lead Auditor ISO 27001 & Data Privacy Practitioner';
+        document.getElementById('courseEditInstructorBio').value = c.instructor_bio || '';
+        document.getElementById('courseEditInstructorAvatar').value = c.instructor_avatar || '/images/author-restia-formal.webp';
+        document.getElementById('courseEditCoverImage').value = c.cover_image || '/images/iso-27001-cover.webp';
+        document.getElementById('courseEditIsPublished').value = (c.is_published !== undefined ? c.is_published : 1);
+        document.getElementById('courseEditDescription').value = c.description || '';
+        document.getElementById('courseModalTitle').innerText = 'Edit Program Kursus: ' + c.title;
+        updateCourseSlugLivePreview(c.slug || '');
+      } else {
+        document.getElementById('courseEditId').value = '0';
+        document.getElementById('courseEditCategory').value = 'Keamanan Informasi';
+        document.getElementById('courseEditBadge').value = 'EXECUTIVE MASTERCLASS';
+        document.getElementById('courseEditPrice').value = 499000;
+        document.getElementById('courseEditOldPrice').value = 1499000;
+        document.getElementById('courseEditDuration').value = '4 Jam 30 Menit';
+        document.getElementById('courseEditLessons').value = 12;
+        document.getElementById('courseEditInstructorName').value = 'Restia Moegiono';
+        document.getElementById('courseEditInstructorTitle').value = 'Lead Auditor ISO 27001 & Data Privacy Practitioner';
+        document.getElementById('courseEditInstructorBio').value = 'Praktisi Keamanan Informasi & Konsultan Audit Tata Kelola Kepatuhan Teknologi.';
+        document.getElementById('courseEditInstructorAvatar').value = '/images/author-restia-formal.webp';
+        document.getElementById('courseEditCoverImage').value = '/images/iso-27001-cover.webp';
+        document.getElementById('courseEditIsPublished').value = '1';
+        document.getElementById('courseModalTitle').innerText = 'Tambah Program Kursus Baru';
+        updateCourseSlugLivePreview('');
+      }
+      modal.style.display = 'flex';
+    }
+
+    function closeCourseModal() {
+      const modal = document.getElementById('courseEditorModal');
+      if (modal) modal.style.display = 'none';
+    }
+
+    function autoSuggestCourseSlug(val) {
+      const id = document.getElementById('courseEditId').value;
+      if (id === '0' || !id) {
+        const slugInput = document.getElementById('courseEditSlug');
+        const slug = val.toLowerCase()
+          .replace(/[^\w\s-]/g, '')
+          .trim()
+          .replace(/\s+/g, '-');
+        slugInput.value = slug;
+        updateCourseSlugLivePreview(slug);
+      }
+    }
+
+    function updateCourseSlugLivePreview(val) {
+      const preview = document.getElementById('courseSlugLiveUrl');
+      if (preview) {
+        const clean = val.trim() || 'nama-kursus-baru';
+        preview.innerText = 'https://restiamoegiono.com/course/' + clean;
+      }
+    }
+
+    async function handleSaveCourse(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btnSubmitCourse');
+      btn.disabled = true;
+      btn.innerText = 'Menyimpan...';
+
+      const formData = new FormData(document.getElementById('courseEditForm'));
+      formData.append('action', 'save_course');
+
+      try {
+        const res = await fetch('/api/admin-action.php', {
+          method: 'POST',
+          headers: { 'X-Admin-Auth': ADMIN_KEY },
+          body: formData
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast('✓ ' + data.message);
+          closeCourseModal();
+          await loadAdminData();
+        } else {
+          alert('Gagal menyimpan kursus: ' + (data.error || 'Terjadi kesalahan sistem.'));
+        }
+      } catch (err) {
+        alert('Terjadi kesalahan jaringan.');
+      } finally {
+        btn.disabled = false;
+        btn.innerText = '💾 Simpan Program Kursus';
+      }
+    }
+
+    async function deleteCourse(id, title) {
+      if (!confirm(`Apakah Anda yakin ingin menghapus program kursus "${title}"?\n\nPerhatian: Halaman publik kursus dan tautan URL terkait tidak akan bisa diakses lagi.`)) {
+        return;
+      }
+      const formData = new FormData();
+      formData.append('action', 'delete_course');
+      formData.append('id', id);
+
+      try {
+        const res = await fetch('/api/admin-action.php', {
+          method: 'POST',
+          headers: { 'X-Admin-Auth': ADMIN_KEY },
+          body: formData
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast('✓ ' + data.message);
+          await loadAdminData();
+        } else {
+          alert('Gagal: ' + (data.error || 'Tidak dapat menghapus kursus.'));
+        }
+      } catch (err) {
+        alert('Terjadi kesalahan jaringan.');
       }
     }
 

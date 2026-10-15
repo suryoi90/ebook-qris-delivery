@@ -189,6 +189,7 @@ try {
                 ORDER BY q.id DESC LIMIT 30")->fetchAll();
 
             // Ambil modul & materi bab kurikulum kursus
+            $lmsCourses = $db->query("SELECT * FROM lms_courses ORDER BY id ASC")->fetchAll(PDO::FETCH_ASSOC);
             $lmsModules = $db->query("SELECT * FROM lms_modules ORDER BY sort_order ASC")->fetchAll();
             $lmsLessons = $db->query("SELECT * FROM lms_lessons ORDER BY module_id ASC, sort_order ASC")->fetchAll();
 
@@ -208,6 +209,7 @@ try {
                 'lms_enrolled' => $totalLmsEnrolled,
                 'lms_passed' => $totalLmsPassed,
                 'lms_discussions' => $totalDiscussions,
+                'lms_courses_count' => count($lmsCourses ?? []),
                 'lms_lessons_count' => count($lmsLessons ?? [])
             ],
             'orders' => $orders,
@@ -215,6 +217,7 @@ try {
             'masters' => $masters,
             'coupons' => $coupons,
             'settings' => $heroSettings,
+            'lms_courses' => $lmsCourses ?? [],
             'lms_students' => $lmsStudents,
             'lms_discussions' => $lmsDiscussions ?? [],
             'lms_quizzes' => $lmsQuizzes ?? [],
@@ -740,6 +743,86 @@ try {
         $stmt = $db->prepare("DELETE FROM `lms_lessons` WHERE `id` = ?");
         $stmt->execute([$id]);
         echo json_encode(['success' => true, 'message' => 'Materi bab berhasil dihapus dari kurikulum.']);
+        exit;
+    }
+
+    // 13. Simpan / Tambah Program Kursus LMS Baru
+    if ($action === 'save_course') {
+        $id = (int)($_POST['id'] ?? 0);
+        $title = trim($_POST['title'] ?? '');
+        $slug = trim($_POST['slug'] ?? '');
+        if (empty($slug)) {
+            $slug = preg_replace('/[^a-z0-9]+/', '-', strtolower($title));
+            $slug = trim($slug, '-');
+        }
+        $subtitle = trim($_POST['subtitle'] ?? '');
+        $description = trim($_POST['description'] ?? '');
+        $category = trim($_POST['category'] ?? 'Keamanan Informasi');
+        $badge = trim($_POST['badge'] ?? 'EXECUTIVE MASTERCLASS');
+        $price = (float)($_POST['price'] ?? 499000);
+        $oldPrice = (float)($_POST['old_price'] ?? 1499000);
+        $instructorName = trim($_POST['instructor_name'] ?? 'Restia Moegiono');
+        $instructorTitle = trim($_POST['instructor_title'] ?? 'Lead Auditor ISO 27001 & Praktisi Keamanan Siber');
+        $instructorBio = trim($_POST['instructor_bio'] ?? '');
+        $instructorAvatar = trim($_POST['instructor_avatar'] ?? '/images/author-restia-formal.webp');
+        $totalDuration = trim($_POST['total_duration'] ?? '4 Jam 30 Menit');
+        $totalLessons = (int)($_POST['total_lessons'] ?? 12);
+        $isPublished = isset($_POST['is_published']) ? (int)$_POST['is_published'] : 1;
+        $coverImage = trim($_POST['cover_image'] ?? '/images/iso-27001-cover.webp');
+
+        if (empty($title)) throw new Exception("Judul program kursus wajib diisi.");
+
+        if ($id > 0) {
+            $stmt = $db->prepare("UPDATE `lms_courses` SET 
+                `slug` = ?, `title` = ?, `subtitle` = ?, `description` = ?,
+                `category` = ?, `badge` = ?, `cover_image` = ?, `price` = ?, `old_price` = ?,
+                `instructor_name` = ?, `instructor_title` = ?, `instructor_bio` = ?, `instructor_avatar` = ?,
+                `total_duration` = ?, `total_lessons` = ?, `is_published` = ?
+                WHERE `id` = ?");
+            $stmt->execute([
+                $slug, $title, $subtitle, $description,
+                $category, $badge, $coverImage, $price, $oldPrice,
+                $instructorName, $instructorTitle, $instructorBio, $instructorAvatar,
+                $totalDuration, $totalLessons, $isPublished, $id
+            ]);
+            $msg = "Program kursus '{$title}' berhasil diperbarui!";
+        } else {
+            $stmt = $db->prepare("INSERT INTO `lms_courses` 
+                (`slug`, `title`, `subtitle`, `description`, `category`, `badge`, `cover_image`, `price`, `old_price`, `instructor_name`, `instructor_title`, `instructor_bio`, `instructor_avatar`, `total_duration`, `total_lessons`, `is_published`)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt->execute([
+                $slug, $title, $subtitle, $description,
+                $category, $badge, $coverImage, $price, $oldPrice,
+                $instructorName, $instructorTitle, $instructorBio, $instructorAvatar,
+                $totalDuration, $totalLessons, $isPublished
+            ]);
+            $id = (int)$db->lastInsertId();
+            $msg = "Program kursus baru '{$title}' berhasil ditambahkan!";
+        }
+
+        echo json_encode([
+            'success' => true,
+            'message' => $msg,
+            'course_id' => $id,
+            'slug' => $slug,
+            'public_url' => 'https://restiamoegiono.com/course/' . $slug,
+            'learn_url' => 'https://restiamoegiono.com/course/learn.php?course=' . $slug
+        ]);
+        exit;
+    }
+
+    // 14. Hapus Program Kursus LMS
+    if ($action === 'delete_course') {
+        $id = (int)($_POST['id'] ?? 0);
+        if ($id <= 0) throw new Exception("ID kursus tidak valid.");
+
+        $stmt = $db->prepare("DELETE FROM `lms_courses` WHERE `id` = ?");
+        $stmt->execute([$id]);
+
+        echo json_encode([
+            'success' => true,
+            'message' => "Program kursus berhasil dihapus dari LMS."
+        ]);
         exit;
     }
 
