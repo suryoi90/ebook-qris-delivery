@@ -12,6 +12,7 @@
     "@cantoo/pdf-lib": "^2.2.3",
     "fontkit": "^2.0.4",
     "next": "^16.3.4",
+    "nodemailer": "^10.0.13",
     "pdf-lib": "^1.17.1",
     "react": "^19.2.8",
     "react-dom": "^19.2.8"

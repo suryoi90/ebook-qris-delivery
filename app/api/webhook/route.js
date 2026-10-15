@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createHash, createHmac, timingSafeEqual } from 'node:crypto';
+import { getOrder, updateOrderStatus } from '../../../lib/db.js';
+import { fulfillOrder } from '../../../lib/fulfillment.js';
 
 export const runtime = 'nodejs';
 
@@ -31,7 +33,9 @@ export async function GET() {
 export async function POST(request) {
   const rawBody = await request.text();
   const requestTarget = new URL(request.url).pathname;
+
   if (!verifyDoku(rawBody, request.headers, requestTarget)) {
+    console.warn('DOKU webhook signature mismatch');
     return NextResponse.json({ status: 'invalid signature' }, { status: 401 });
   }
 
@@ -39,42 +43,39 @@ export async function POST(request) {
   try { body = JSON.parse(rawBody); }
   catch { return NextResponse.json({ status: 'invalid body' }, { status: 400 }); }
 
-  // DOKU Checkout may send FAILED while a customer selects another payment method.
-  // Only SUCCESS can trigger delivery; Apps Script also checks the stored invoice/amount.
-  if (body.transaction?.status !== 'SUCCESS') return NextResponse.json({ status: 'accepted' });
+  // Only SUCCESS can trigger delivery
+  if (body.transaction?.status !== 'SUCCESS') {
+    return NextResponse.json({ status: 'accepted' });
+  }
+
   const invoice = body.order?.invoice_number;
   const amount = Number(body.order?.amount);
   if (!invoice || !Number.isFinite(amount) || amount <= 0) {
     return NextResponse.json({ status: 'missing transaction data' }, { status: 400 });
   }
 
-  const gasUrl = process.env.GOOGLE_SCRIPT_URL;
-  const sharedSecret = process.env.GAS_SHARED_SECRET;
-  if (!gasUrl || !sharedSecret) {
-    console.error('Google Apps Script integration is not configured');
-    return NextResponse.json({ status: 'delivery integration unavailable' }, { status: 503 });
+  const order = getOrder(invoice);
+  if (!order) {
+    console.error('Order not found for invoice:', invoice);
+    return NextResponse.json({ status: 'order not found' }, { status: 404 });
   }
 
+  const transactionId = String(body.transaction?.transaction_id || body.transaction?.original_request_id || '');
+
+  // Record payment
+  updateOrderStatus(invoice, {
+    status: 'PAID',
+    transaction_id: transactionId,
+    paid_at: new Date().toISOString()
+  });
+
   try {
-    const response = await fetch(gasUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        action: 'deliver_paid_order', shared_secret: sharedSecret,
-        invoice_number: String(invoice), amount,
-        transaction_status: String(body.transaction.status),
-        transaction_id: String(body.transaction?.transaction_id || body.transaction?.original_request_id || ''),
-      }),
-      cache: 'no-store', redirect: 'follow',
-    });
-    const result = await response.json().catch(() => ({}));
-    if (!response.ok || result.status !== 'success') {
-      console.error('Apps Script did not accept paid order', { invoice, status: response.status });
-      return NextResponse.json({ status: 'delivery pending' }, { status: 503 });
-    }
+    // Deliver personalized watermarked & password-protected ebook via SMTP
+    await fulfillOrder(invoice);
+    console.log(`Successfully fulfilled and emailed order: ${invoice}`);
     return NextResponse.json({ status: 'OK' });
   } catch (error) {
-    console.error('Apps Script forwarding failed:', error.message);
-    return NextResponse.json({ status: 'delivery pending' }, { status: 503 });
+    console.error('Direct fulfillment error:', error);
+    return NextResponse.json({ status: 'delivery pending', error: error.message }, { status: 500 });
   }
 }

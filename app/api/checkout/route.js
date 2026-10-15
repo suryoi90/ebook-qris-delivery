@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { randomUUID } from 'node:crypto';
 import { PRODUCTS, validateCustomer } from '../../../lib/products.js';
+import { saveOrder } from '../../../lib/db.js';
 
 export const runtime = 'nodejs';
 
@@ -8,22 +9,6 @@ function requiredEnv(name) {
   const value = process.env[name];
   if (!value) throw new Error(`Konfigurasi server ${name} belum tersedia.`);
   return value;
-}
-
-async function callGoogleScript(data) {
-  const url = requiredEnv('GOOGLE_SCRIPT_URL');
-  const secret = requiredEnv('GAS_SHARED_SECRET');
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ ...data, shared_secret: secret }),
-    cache: 'no-store',
-    redirect: 'follow',
-  });
-  if (!response.ok) throw new Error('Google Apps Script tidak dapat dihubungi.');
-  const result = await response.json();
-  if (result.status !== 'success') throw new Error('Google Apps Script menolak pencatatan pesanan.');
-  return result;
 }
 
 export async function POST(request) {
@@ -36,17 +21,20 @@ export async function POST(request) {
     const clientId = requiredEnv('DOKU_CLIENT_ID');
     const secretKey = requiredEnv('DOKU_SECRET_KEY');
     const baseUrl = (process.env.DOKU_BASE_URL || 'https://api-sandbox.doku.com').replace(/\/$/, '');
-    const appUrl = requiredEnv('APP_BASE_URL').replace(/\/$/, '');
+    const appUrl = (process.env.APP_BASE_URL || 'https://store.restiamoegiono.com').replace(/\/$/, '');
     const notifyUrl = `${appUrl}/api/webhook`;
     const callbackUrl = `${appUrl}/payment/result?invoice=${encodeURIComponent(invoiceNumber)}`;
 
-    // Store trusted purchase details before the customer can pay. The webhook later
-    // supplies only a signed invoice/status; Apps Script looks up these stored details.
-    await callGoogleScript({
-      action: 'register_order', invoice_number: invoiceNumber, amount: product.amount,
-      customer_name: customer.name, customer_email: customer.email,
-      organization: customer.organization, product_id: input.productId,
+    // Store order in local database
+    saveOrder({
+      invoice_number: invoiceNumber,
+      amount: product.amount,
+      customer_name: customer.name,
+      customer_email: customer.email,
+      organization: customer.organization,
+      product_id: input.productId,
       product_title: product.title,
+      status: 'PENDING'
     });
 
     const payload = {
@@ -82,7 +70,7 @@ export async function POST(request) {
     const result = await dokuResponse.json().catch(() => ({}));
     const paymentUrl = result.response?.payment?.url;
     if (!dokuResponse.ok || !paymentUrl) {
-      console.error('DOKU checkout creation failed', { status: dokuResponse.status, invoiceNumber });
+      console.error('DOKU checkout creation failed', { status: dokuResponse.status, invoiceNumber, result });
       return NextResponse.json({ success: false, message: 'DOKU gagal membuat pembayaran. Silakan coba lagi.' }, { status: 502 });
     }
     return NextResponse.json({ success: true, paymentUrl, invoiceNumber });

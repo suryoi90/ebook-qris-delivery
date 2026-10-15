@@ -85,8 +85,8 @@ function deliverPaidOrder_(body) {
     const organization = String(c('organization') || '-');
     const title = String(c('product_title') || 'E-Book');
     const license = Utilities.getUuid().replace(/-/g, '').slice(0, 12).toUpperCase();
-    const pdfPassword = Utilities.getUuid().replace(/-/g, '') + Utilities.getUuid().replace(/-/g, '').slice(0, 8);
-    const watermark = 'Lisensi resmi untuk ' + name + ' (' + email + ') | ' + organization + ' | ID: ' + license;
+    const pdfPassword = generate6CharPassword_();
+    const watermark = 'Lisensi Resmi: ' + name + ' (' + email + ') | ' + organization + ' | ID: ' + license + ' | Hak Cipta Dilindungi UU No. 28/2014';
     const template = DriveApp.getFileById(requiredProperty_('TEMPLATE_DOC_ID'));
     const folder = DriveApp.getFolderById(requiredProperty_('OUTPUT_FOLDER_ID'));
     tempDoc = template.makeCopy((title + ' - ' + license).slice(0, 180), folder);
@@ -124,10 +124,10 @@ function deliverPaidOrder_(body) {
     if (finalBytes.length < 8 || bytesToText_(finalBytes.slice(0, 5)) !== '%PDF-') throw new Error('Vercel returned an invalid PDF.');
     const attachment = Utilities.newBlob(finalBytes, 'application/pdf', safeFileName_(title + ' - ' + name) + '.pdf');
 
-    GmailApp.sendEmail(email, 'E-Book Anda: ' + title, 'Terlampir PDF ebook ber-watermark. Password pembuka PDF akan dikirim dalam email terpisah.', {
+    GmailApp.sendEmail(email, 'E-Book Resmi: ' + title, 'Halo ' + name + ',\n\nTerima kasih atas pesanan Anda. Terlampir berkas PDF e-book berlisensi resmi dengan watermark personal di setiap footer halaman.\n\nKata sandi pembuka PDF (6 karakter angka & huruf kecil) telah dikirimkan secara otomatis dalam email terpisah.\n\nSalam,\nRestia Moegiono Official', {
       attachments: [attachment], name: 'Restia Moegiono Official',
     });
-    GmailApp.sendEmail(email, 'Password PDF E-Book: ' + title, 'Password untuk membuka PDF Anda:\n\n' + pdfPassword + '\n\nSimpan password ini secara aman.', {
+    GmailApp.sendEmail(email, 'Password Pembuka PDF: ' + title, 'Halo ' + name + ',\n\nBerikut kode sandi (password 6 karakter) untuk membuka berkas PDF e-book ' + title + ':\n\nPassword: ' + pdfPassword + '\n(Format: 6 digit angka dan huruf kecil)\n\nPERINGATAN HAK CIPTA:\nDokumen ini dilindungi lisensi resmi personal Anda di setiap halaman. Dilarang menggandakan atau menyebarluaskan dokumen ini kepada pihak lain.\n\nSalam,\nRestia Moegiono Official', {
       name: 'Restia Moegiono Official',
     });
 
@@ -169,3 +169,11 @@ function constantTimeEquals_(a, b) {
 function escapeReplacement_(value) { return String(value).replace(/\\/g, '\\\\').replace(/\$/g, '\\$'); }
 function bytesToText_(bytes) { return bytes.map(b => String.fromCharCode((b + 256) % 256)).join(''); }
 function safeFileName_(value) { return String(value).replace(/[\\/:*?"<>|]/g, '-').slice(0, 120); }
+function generate6CharPassword_() {
+  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+  let pass = '';
+  for (let i = 0; i < 6; i++) {
+    pass += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return pass;
+}
