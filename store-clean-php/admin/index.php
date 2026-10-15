@@ -953,6 +953,10 @@ $maskedEmail = substr(ADMIN_EMAIL, 0, 3) . '***@' . explode('@', ADMIN_EMAIL)[1]
         <span class="nav-chip-icon">🖼️</span>
         <span>Hero Toko</span>
       </button>
+      <button type="button" class="nav-chip" data-tab="backup" onclick="switchTab('backup', this)" style="background:#f0fdf4; color:#166534; border-color:#bbf7d0; font-weight:800;">
+        <span class="nav-chip-icon">💾</span>
+        <span>Backup &amp; SQL</span>
+      </button>
     </div>
 
     <!-- TAB 1: ORDERS -->
@@ -1529,6 +1533,120 @@ $maskedEmail = substr(ADMIN_EMAIL, 0, 3) . '***@' . explode('@', ADMIN_EMAIL)[1]
             <tr><td colspan="5" style="text-align:center; padding:30px; color:#64748b;">Memuat riwayat kuis...</td></tr>
           </tbody>
         </table>
+      </div>
+    </div>
+
+    <!-- TAB BACKUP: MANAJEMEN PENCADANGAN SISTEM & SQL DUMP -->
+    <div id="tabBackup" style="display:none; margin-bottom:32px;">
+      <!-- BANNER PENJELASAN -->
+      <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:20px; padding:22px 26px; margin-bottom:24px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
+        <div>
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+            <h2 style="font-size:18px; font-weight:900; color:#0f172a; margin:0;">Pencadangan Sistem &amp; Basis Data MySQL</h2>
+            <span class="orders-counter-badge" style="background:#dcfce7; color:#166534; border-color:#86efac;">Integritas Terverifikasi</span>
+          </div>
+          <p style="font-size:13px; color:#64748b; margin:0;">
+            Ekspor seluruh 27 tabel basis data (<code style="background:#f1f5f9; padding:2px 6px; border-radius:4px; font-weight:700;">restiamo_portal</code>) atau arsipkan seluruh kode sumber toko ke dalam format ZIP berintegritas SHA-256.
+          </p>
+        </div>
+        <div style="display:flex; gap:10px;">
+          <button type="button" class="btn-refresh-data" onclick="loadBackupList()" title="Segarkan daftar arsip cadangan">
+            <span id="backupRefreshIcon">🔄</span> Muat Ulang Daftar
+          </button>
+        </div>
+      </div>
+
+      <!-- GRID AKSI PENCADANGAN -->
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); gap:20px; margin-bottom:24px;">
+        <!-- KARTU 1: CADANGAN SQL -->
+        <div style="background:#ffffff; border:1px solid var(--color-blue-border); border-radius:18px; padding:24px; box-shadow:0 4px 16px rgba(15, 34, 74, 0.04); display:flex; flex-direction:column; justify-content:space-between;">
+          <div>
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
+              <div style="width:44px; height:44px; border-radius:12px; background:#e0f2fe; color:#0284c7; display:flex; align-items:center; justify-content:center; font-size:22px;">🗄️</div>
+              <span style="font-size:11px; font-weight:800; padding:3px 10px; border-radius:20px; background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe;">SQL DUMP</span>
+            </div>
+            <h3 style="font-size:16px; font-weight:900; color:#0f172a; margin-bottom:6px;">Cadangan Basis Data (SQL Dump)</h3>
+            <p style="font-size:12.5px; color:#64748b; line-height:1.5; margin-bottom:16px;">
+              Mencakup seluruh tabel: <code style="font-size:11px;">store_orders</code>, <code style="font-size:11px;">store_products</code>, <code style="font-size:11px;">store_coupons</code>, <code style="font-size:11px;">lms_*</code>, dan artikel. Dihasilkan secara streaming sehingga hemat RAM cPanel (&lt; 15MB).
+            </p>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <button type="button" onclick="downloadDirectSql()" class="btn-primary-form" style="background:#0284c7; justify-content:center; padding:11px 16px; font-size:13px; font-weight:800; display:inline-flex; align-items:center; gap:8px;">
+              <span>📥</span> Unduh SQL Langsung (.sql)
+            </button>
+            <button type="button" id="btnServerSql" onclick="triggerServerBackup('sql')" class="btn-action-sm" style="justify-content:center; padding:9px 14px; font-size:12px; font-weight:700;">
+              <span>💾</span> Simpan Snapshot SQL ke Server
+            </button>
+          </div>
+        </div>
+
+        <!-- KARTU 2: FULL BACKUP ZIP -->
+        <div style="background:#ffffff; border:1px solid var(--color-blue-border); border-radius:18px; padding:24px; box-shadow:0 4px 16px rgba(15, 34, 74, 0.04); display:flex; flex-direction:column; justify-content:space-between;">
+          <div>
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
+              <div style="width:44px; height:44px; border-radius:12px; background:#dcfce7; color:#166534; display:flex; align-items:center; justify-content:center; font-size:22px;">📦</div>
+              <span style="font-size:11px; font-weight:800; padding:3px 10px; border-radius:20px; background:#f0fdf4; color:#15803d; border:1px solid #bbf7d0;">FULL ZIP ARCHIVE</span>
+            </div>
+            <h3 style="font-size:16px; font-weight:900; color:#0f172a; margin-bottom:6px;">Full Backup Sistem (ZIP)</h3>
+            <p style="font-size:12.5px; color:#64748b; line-height:1.5; margin-bottom:16px;">
+              Mengemas seluruh database SQL dump + source code PHP lengkap toko + script watermark python + konfigurasi ke dalam 1 arsip ZIP terkompresi dengan manifest.json &amp; checksum SHA-256.
+            </p>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <button type="button" id="btnServerFull" onclick="triggerServerBackup('full')" class="btn-primary-form" style="background:#059669; justify-content:center; padding:11px 16px; font-size:13px; font-weight:800; display:inline-flex; align-items:center; gap:8px;">
+              <span>📦</span> Buat &amp; Simpan Full Backup (.zip)
+            </button>
+            <div style="font-size:11px; color:#64748b; text-align:center;">
+              🛡️ Folder penyimpanan di server diproteksi .htaccess
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- KARTU TABEL RIWAYAT ARSIP SERVER -->
+      <div class="table-card">
+        <div class="orders-table-header" style="background:#ffffff;">
+          <div class="orders-title-wrap">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <h3 class="orders-title">Daftar Berkas Cadangan Tersimpan di Server</h3>
+              <span id="backupCounterBadge" class="orders-counter-badge">0 Berkas</span>
+            </div>
+            <p class="orders-subtitle">
+              Lokasi server: <code style="font-size:11px; background:#f1f5f9; padding:2px 6px; border-radius:4px;">storage/backups/</code> &bull; Akses publik ditolak otomatis via .htaccess
+            </p>
+          </div>
+        </div>
+
+        <div>
+          <table>
+            <thead>
+              <tr>
+                <th style="width:34%;">Nama Berkas &amp; Tipe</th>
+                <th style="width:20%;">Waktu Dibuat</th>
+                <th style="width:14%;">Ukuran</th>
+                <th style="width:20%;">Integritas Checksum</th>
+                <th style="width:12%; text-align:right;">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="backupTbody">
+              <tr><td colspan="5" style="text-align:center; padding:30px; color:#64748b;">Memuat riwayat cadangan...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- PANDUAN PEMULIHAN CEPAT -->
+      <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:16px; padding:18px 22px; font-size:12.5px; color:#475569; line-height:1.6;">
+        <div style="font-weight:800; font-size:13px; color:#0f172a; margin-bottom:6px; display:flex; align-items:center; gap:6px;">
+          <span>💡</span> Panduan Pemulihan Cepat (Disaster Recovery):
+        </div>
+        <div>
+          1. <b>Via phpMyAdmin cPanel:</b> Masuk ke cPanel &gt; phpMyAdmin &gt; Pilih basis data <code style="font-weight:700;">restiamo_portal</code> &gt; Klik tab <b>Import</b> &gt; Unggah file <code style="font-weight:700;">.sql</code> cadangan Anda.
+        </div>
+        <div style="margin-top:4px;">
+          2. <b>Via Terminal SSH / MySQL CLI:</b> Jalankan perintah berikut:
+          <pre style="background:#0f172a; color:#38bdf8; padding:8px 12px; border-radius:8px; margin-top:6px; font-size:12px; font-family:monospace; overflow-x:auto;">mysql -u restiamo_puser -p restiamo_portal &lt; store_sql_dump_YYYYMMDD_His.sql</pre>
+        </div>
       </div>
     </div>
   </main>
@@ -2422,7 +2540,7 @@ $maskedEmail = substr(ADMIN_EMAIL, 0, 3) . '***@' . explode('@', ADMIN_EMAIL)[1]
         if (target) target.classList.add('active');
       }
 
-      const tabs = ['orders', 'products', 'course', 'coupons', 'briefcase', 'drm', 'email', 'doku', 'hero', 'lms'];
+      const tabs = ['orders', 'products', 'course', 'coupons', 'briefcase', 'drm', 'email', 'doku', 'hero', 'lms', 'backup'];
       tabs.forEach(t => {
         const elId = 'tab' + t.charAt(0).toUpperCase() + t.slice(1);
         const tabEl = document.getElementById(elId);
@@ -2431,6 +2549,195 @@ $maskedEmail = substr(ADMIN_EMAIL, 0, 3) . '***@' . explode('@', ADMIN_EMAIL)[1]
 
       if (tab === 'hero' || tab === 'course' || tab === 'lms') {
         initQuill();
+      }
+      if (tab === 'backup') {
+        loadBackupList();
+      }
+    }
+
+    // ==========================================
+    // BACKUP & SQL DUMP JAVASCRIPT CONTROLLER
+    // ==========================================
+    let cachedBackups = [];
+
+    async function loadBackupList() {
+      const tbody = document.getElementById('backupTbody');
+      const badge = document.getElementById('backupCounterBadge');
+      const refreshIcon = document.getElementById('backupRefreshIcon');
+      if (refreshIcon) refreshIcon.style.animation = 'spin 1s linear infinite';
+
+      try {
+        const res = await fetch('/api/admin-action.php?action=get_backups', {
+          headers: { 'X-Admin-Auth': ADMIN_KEY }
+        });
+        const data = await res.json();
+        if (refreshIcon) refreshIcon.style.animation = '';
+
+        if (data.success) {
+          cachedBackups = data.backups || [];
+          if (badge) badge.innerText = `${cachedBackups.length} Berkas`;
+          renderBackupTable(cachedBackups);
+        } else {
+          if (tbody) tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:24px; color:#ef4444;">Gagal memuat data: ${data.error || 'Terjadi kesalahan'}</td></tr>`;
+        }
+      } catch (e) {
+        if (refreshIcon) refreshIcon.style.animation = '';
+        if (tbody) tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:24px; color:#ef4444;">Kendala koneksi ke server.</td></tr>`;
+      }
+    }
+
+    function renderBackupTable(backups) {
+      const tbody = document.getElementById('backupTbody');
+      if (!tbody) return;
+
+      if (!backups || backups.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="5" style="text-align:center; padding:36px 20px; color:#64748b;">
+              <div style="font-size:32px; margin-bottom:8px;">📭</div>
+              <div style="font-weight:700; color:#0f172a; margin-bottom:4px;">Belum Ada Berkas Cadangan Tersimpan</div>
+              <div style="font-size:12px;">Gunakan tombol "Simpan Snapshot SQL ke Server" atau "Buat &amp; Simpan Full Backup" di atas untuk membuat cadangan pertama.</div>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      let html = '';
+      backups.forEach(b => {
+        const isSql = (b.type === 'SQL');
+        const badgeColor = isSql 
+          ? 'background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe;' 
+          : 'background:#f0fdf4; color:#15803d; border:1px solid #bbf7d0;';
+        const typeLabel = isSql ? 'SQL DUMP' : 'FULL ZIP';
+        const icon = isSql ? '🗄️' : '📦';
+
+        html += `
+          <tr class="order-row-item">
+            <td>
+              <div style="display:flex; align-items:center; gap:10px;">
+                <span style="font-size:18px;">${icon}</span>
+                <div>
+                  <div style="font-weight:800; font-size:13px; color:#0f172a; font-family:ui-monospace,SFMono-Regular,monospace;">
+                    ${escapeHtml(b.filename)}
+                  </div>
+                  <span style="display:inline-block; font-size:10px; font-weight:800; padding:1px 7px; border-radius:10px; margin-top:2px; ${badgeColor}">
+                    ${typeLabel}
+                  </span>
+                </div>
+              </div>
+            </td>
+            <td>
+              <div style="font-size:12px; font-weight:700; color:#0f172a;">${escapeHtml(b.created_at)} WIB</div>
+            </td>
+            <td>
+              <div style="font-size:12.5px; font-weight:800; color:#0284c7;">${escapeHtml(b.size_formatted)}</div>
+              <div style="font-size:10px; color:#94a3b8;">${Number(b.size).toLocaleString('id-ID')} bytes</div>
+            </td>
+            <td>
+              <div style="display:flex; align-items:center; gap:6px;">
+                <code style="font-size:11px; background:#f1f5f9; padding:2px 6px; border-radius:4px; max-width:140px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${escapeHtml(b.checksum)}">
+                  ${escapeHtml(b.checksum.substring(0, 16))}...
+                </code>
+                <button type="button" onclick="navigator.clipboard.writeText('${escapeHtml(b.checksum)}'); showToast('✓ Checksum SHA-256 disalin!');" style="background:none; border:none; cursor:pointer; font-size:12px;" title="Salin Checksum Lengkap">📋</button>
+              </div>
+            </td>
+            <td style="text-align:right;">
+              <div style="display:flex; gap:6px; justify-content:flex-end;">
+                <button type="button" onclick="downloadBackupFile('${escapeHtml(b.filename)}')" class="btn-action-sm" style="background:#e0f2fe; color:#0369a1; border-color:#bae6fd; padding:6px 10px; font-size:11px; font-weight:800;" title="Unduh berkas ke komputer">
+                  📥 Unduh
+                </button>
+                <button type="button" onclick="deleteBackupFile('${escapeHtml(b.filename)}')" class="btn-action-sm" style="background:#fff1f2; color:#e11d48; border-color:#fecdd3; padding:6px 8px; font-size:11px; font-weight:800;" title="Hapus berkas dari server">
+                  🗑️
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      });
+
+      tbody.innerHTML = html;
+    }
+
+    function downloadDirectSql() {
+      showToast('⏳ Mempersiapkan streaming download SQL Dump...');
+      window.location.href = `/api/admin-action.php?action=download_backup&direct=sql_direct&admin_key=${encodeURIComponent(ADMIN_KEY)}`;
+    }
+
+    async function triggerServerBackup(type) {
+      const isFull = (type === 'full');
+      const btn = document.getElementById(isFull ? 'btnServerFull' : 'btnServerSql');
+      const origText = btn ? btn.innerHTML : '';
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '⏳ Sedang Memproses Cadangan...';
+      }
+
+      showToast(`⏳ Sedang membuat ${isFull ? 'Full Backup ZIP' : 'Snapshot SQL Dump'}... Mohon tunggu.`);
+
+      try {
+        const formData = new FormData();
+        formData.append('action', 'create_backup');
+        formData.append('type', type.toUpperCase());
+
+        const res = await fetch('/api/admin-action.php', {
+          method: 'POST',
+          headers: { 'X-Admin-Auth': ADMIN_KEY },
+          body: formData
+        });
+
+        const data = await res.json();
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = origText;
+        }
+
+        if (data.success) {
+          alert('✓ ' + data.message);
+          showToast('✓ Berkas cadangan berhasil disimpan di server!');
+          loadBackupList();
+        } else {
+          alert('Gagal: ' + (data.error || 'Terjadi kesalahan'));
+        }
+      } catch (e) {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = origText;
+        }
+        alert('Terjadi kesalahan jaringan atau timeout saat membuat cadangan: ' + e.message);
+      }
+    }
+
+    function downloadBackupFile(filename) {
+      showToast('📥 Mengunduh ' + filename + '...');
+      window.location.href = `/api/admin-action.php?action=download_backup&file=${encodeURIComponent(filename)}&admin_key=${encodeURIComponent(ADMIN_KEY)}`;
+    }
+
+    async function deleteBackupFile(filename) {
+      if (!confirm(`Apakah Anda yakin ingin menghapus berkas cadangan:\n"${filename}" dari penyimpanan server?`)) {
+        return;
+      }
+
+      try {
+        const formData = new FormData();
+        formData.append('action', 'delete_backup');
+        formData.append('file', filename);
+
+        const res = await fetch('/api/admin-action.php', {
+          method: 'POST',
+          headers: { 'X-Admin-Auth': ADMIN_KEY },
+          body: formData
+        });
+
+        const data = await res.json();
+        if (data.success) {
+          showToast('✓ ' + data.message);
+          loadBackupList();
+        } else {
+          alert('Gagal menghapus: ' + (data.error || 'Terjadi kesalahan'));
+        }
+      } catch (e) {
+        alert('Terjadi kesalahan jaringan: ' + e.message);
       }
     }
 

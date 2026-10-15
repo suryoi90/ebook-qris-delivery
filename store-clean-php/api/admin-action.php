@@ -4,6 +4,7 @@ require_once __DIR__ . '/../db.php';
 require_once __DIR__ . '/../services/FulfillmentService.php';
 require_once __DIR__ . '/../services/WatermarkService.php';
 require_once __DIR__ . '/../services/MailService.php';
+require_once __DIR__ . '/../services/BackupService.php';
 
 session_start();
 
@@ -90,6 +91,77 @@ try {
 
     // Response default selanjutnya adalah JSON
     header('Content-Type: application/json; charset=utf-8');
+
+    // ==========================================
+    // MODUL CADANGAN SISTEM (BACKUP & SQL DUMP)
+    // ==========================================
+
+    // A. Daftar Berkas Cadangan di Server
+    if ($action === 'get_backups') {
+        $backups = BackupService::listBackups();
+        echo json_encode([
+            'success' => true,
+            'backups' => $backups,
+            'total' => count($backups),
+            'server_time' => date('Y-m-d H:i:s')
+        ]);
+        exit;
+    }
+
+    // B. Buat Cadangan Baru (SQL Dump atau Full Backup ZIP)
+    if ($action === 'create_backup') {
+        $type = strtoupper(trim($_POST['type'] ?? ($_GET['type'] ?? 'SQL')));
+        if ($type === 'FULL') {
+            $result = BackupService::createFullBackup();
+            echo json_encode([
+                'success' => true,
+                'message' => "Arsip Full Backup ({$result['filename']} - {$result['size_formatted']}) berhasil dibuat dan disimpan di server!",
+                'backup' => $result
+            ]);
+        } else {
+            $result = BackupService::exportSqlDump(null, false);
+            echo json_encode([
+                'success' => true,
+                'message' => "Dump Basis Data MySQL ({$result['filename']} - {$result['size_formatted']}) berhasil dibuat!",
+                'backup' => $result
+            ]);
+        }
+        exit;
+    }
+
+    // C. Unduh Berkas Cadangan (Streaming Download)
+    if ($action === 'download_backup') {
+        $direct = trim($_GET['direct'] ?? '');
+        if ($direct === 'sql_direct') {
+            // Streaming langsung SQL Dump ke browser tanpa simpan file permanen
+            BackupService::exportSqlDump(null, true);
+            exit;
+        }
+
+        $filename = trim($_GET['file'] ?? '');
+        if (empty($filename)) {
+            throw new Exception("Nama berkas cadangan tidak boleh kosong.");
+        }
+        BackupService::downloadBackup($filename);
+        exit;
+    }
+
+    // D. Hapus Berkas Cadangan dari Server
+    if ($action === 'delete_backup') {
+        $filename = trim($_POST['file'] ?? ($_GET['file'] ?? ''));
+        if (empty($filename)) {
+            throw new Exception("Nama berkas cadangan tidak ditentukan.");
+        }
+        $deleted = BackupService::deleteBackup($filename);
+        if (!$deleted) {
+            throw new Exception("Berkas cadangan tidak ditemukan atau gagal dihapus dari disk server.");
+        }
+        echo json_encode([
+            'success' => true,
+            'message' => "Berkas cadangan '{$filename}' berhasil dihapus dari server."
+        ]);
+        exit;
+    }
 
     // 0b. Aksi Fulfill / Stempel Ulang Berkas DRM & Kirim Email Secara Manual
     if ($action === 'fulfill_order') {
