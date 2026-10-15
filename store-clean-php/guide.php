@@ -126,7 +126,7 @@ require_once __DIR__ . '/config.php';
         <div>
           <h3 style="font-size:16px; font-weight:800; color:var(--color-navy); margin-bottom:4px;">Pengiriman Dokumen Otomatis</h3>
           <p style="font-size:14px; color:var(--color-text-main);">
-            Dalam waktu &lt; 1 detik setelah pembayaran Anda berhasil diverifikasi, sistem akan membubuhkan stempel watermark kriptografis dan mengirimkan tautan unduhan langsung ke email Anda. Anda juga akan dialihkan ke halaman konfirmasi yang memuat tombol unduh instan.
+            Dalam waktu &lt; 1 jam setelah pembayaran Anda berhasil diverifikasi, sistem akan membubuhkan stempel watermark kriptografis dan mengirimkan tautan unduhan langsung ke email Anda. Anda juga akan dialihkan ke halaman konfirmasi yang memuat tombol unduh instan.
           </p>
         </div>
       </div>

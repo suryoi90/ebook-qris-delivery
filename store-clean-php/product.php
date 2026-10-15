@@ -790,7 +790,7 @@ function str_limit($value, $limit = 100, $end = '...') {
           <div class="trust-badges-list">
             <div class="trust-badge-item">
               <span style="font-size:16px;">⚡</span>
-              <span>Pengiriman Otomatis &lt; 1 Detik via Email</span>
+              <span>Pengiriman Otomatis &lt; 1 Jam via Email</span>
             </div>
             <div class="trust-badge-item">
               <span style="font-size:16px;">🔒</span>

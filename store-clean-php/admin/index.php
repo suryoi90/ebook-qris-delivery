@@ -703,6 +703,15 @@ $maskedEmail = substr(ADMIN_EMAIL, 0, 3) . '***@' . explode('@', ADMIN_EMAIL)[1]
     #quillLmsLessonWrapper .ql-container.ql-snow {
       min-height: 220px !important; max-height: 340px !important;
     }
+    #quillTocWrapper .ql-container.ql-snow {
+      min-height: 140px !important; max-height: 280px !important;
+    }
+    #quillTargetWrapper .ql-container.ql-snow,
+    #quillBenefitsWrapper .ql-container.ql-snow {
+      min-height: 120px !important; max-height: 240px !important;
+    }
+    #rawTocTextarea { min-height: 140px !important; max-height: 280px !important; }
+    #rawTargetTextarea, #rawBenefitsTextarea { min-height: 120px !important; max-height: 240px !important; }
     .form-group { margin-bottom: 16px; }
     .form-label { display: block; font-size: 12px; font-weight: 800; color: #475569; margin-bottom: 6px; }
     .form-control {
@@ -1702,18 +1711,6 @@ $maskedEmail = substr(ADMIN_EMAIL, 0, 3) . '***@' . explode('@', ADMIN_EMAIL)[1]
               </button>
             </div>
 
-            <!-- Quick Templates Bar -->
-            <div class="editor-toolbar-custom">
-              <span style="font-size:11px; font-weight:800; color:#64748b; margin-right:4px;">Sisipkan Template:</span>
-              <button type="button" class="btn-template" onclick="insertEditorTemplate('silabus')">📑 Silabus &amp; Bab</button>
-              <button type="button" class="btn-template" onclick="insertEditorTemplate('target')">🎯 Target Pembaca</button>
-              <button type="button" class="btn-template" onclick="insertEditorTemplate('callout')">💡 Catatan Penting</button>
-              <button type="button" class="btn-template" onclick="insertEditorTemplate('highlight')">⭐ Nilai Tambah</button>
-              <button type="button" class="btn-template" onclick="insertEditorTemplate('instrumen')">🔍 Instrumen Kerja</button>
-              <button type="button" class="btn-template" onclick="insertEditorTemplate('table')">📊 Spesifikasi Buku</button>
-              <button type="button" class="btn-template" onclick="insertEditorTemplate('clear')" style="color:#b91c1c;">🧹 Kosongkan</button>
-            </div>
-
             <!-- Quill Canvas -->
             <div id="quillWrapper">
               <div id="quillProductEditor"></div>
@@ -1730,19 +1727,61 @@ $maskedEmail = substr(ADMIN_EMAIL, 0, 3) . '***@' . explode('@', ADMIN_EMAIL)[1]
             <div style="font-weight:800; font-size:14px; color:#0f172a; margin-bottom:4px;">Detail Khusus Halaman Publik (/produk/slug)</div>
             <p style="font-size:12px; color:#64748b; margin-bottom:14px;">Konten berikut ditampilkan otomatis di tab Silabus, Target Pembaca, dan Nilai Tambah pada halaman tersendiri produk ini.</p>
 
-            <div class="form-group" style="margin-bottom:14px;">
-              <label class="form-label">📑 Silabus / Daftar Isi Lengkap (Bisa HTML atau Teks)</label>
-              <textarea id="editTableOfContents" name="table_of_contents" class="form-control" rows="5" placeholder="Contoh:&#10;Bab 1: Tata Kelola Keamanan Siber&#10;Bab 2: Panduan Checklist & Audit&#10;Bab 3: Format Rekomendasi Resmi..."></textarea>
+            <!-- 1. WYSIWYG Silabus / Daftar Isi -->
+            <div class="form-group" style="margin-bottom:16px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                <label class="form-label" style="margin:0;">📑 Silabus / Daftar Isi Lengkap</label>
+                <button type="button" id="btnToggleTocHtml" onclick="toggleTocHtmlMode()" class="btn-action-sm" style="font-size:11px; padding:3px 8px;">
+                  &lt;&sol;&gt; Mode HTML
+                </button>
+              </div>
+              <div id="quillTocWrapper">
+                <div id="quillTocEditor"></div>
+              </div>
+              <textarea id="rawTocTextarea" class="raw-html-textarea" placeholder="Kode HTML atau teks silabus..."></textarea>
+              <input type="hidden" id="editTableOfContents" name="table_of_contents">
+              <div style="font-size:11px; color:#64748b; margin-top:4px; display:flex; justify-content:space-between;">
+                <span>Format bab, sub-bab, atau silabus secara terstruktur.</span>
+                <span id="tocStats">0 karakter</span>
+              </div>
             </div>
 
+            <!-- 2 & 3. WYSIWYG Target Pembaca & Manfaat Utama -->
             <div class="grid-2col">
               <div class="form-group" style="margin:0;">
-                <label class="form-label">🎯 Target Pembaca &amp; Sasaran Organisasi</label>
-                <textarea id="editTargetAudience" name="target_audience" class="form-control" rows="4" placeholder="CISO, DPO, Auditor TI, Manajer Kepatuhan, Lead Auditor..."></textarea>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                  <label class="form-label" style="margin:0;">🎯 Target Pembaca &amp; Sasaran Organisasi</label>
+                  <button type="button" id="btnToggleTargetHtml" onclick="toggleTargetHtmlMode()" class="btn-action-sm" style="font-size:11px; padding:3px 8px;">
+                    &lt;&sol;&gt; Mode HTML
+                  </button>
+                </div>
+                <div id="quillTargetWrapper">
+                  <div id="quillTargetAudienceEditor"></div>
+                </div>
+                <textarea id="rawTargetTextarea" class="raw-html-textarea" placeholder="Target pembaca..."></textarea>
+                <input type="hidden" id="editTargetAudience" name="target_audience">
+                <div style="font-size:11px; color:#64748b; margin-top:4px; display:flex; justify-content:space-between;">
+                  <span>Peran, profesi, atau instansi target.</span>
+                  <span id="targetStats">0 karakter</span>
+                </div>
               </div>
+
               <div class="form-group" style="margin:0;">
-                <label class="form-label">🌟 Manfaat Utama &amp; Nilai Tambah</label>
-                <textarea id="editBenefits" name="benefits" class="form-control" rows="4" placeholder="Checklist audit siap pakai, hemat puluhan jam penyusunan instrumen..."></textarea>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                  <label class="form-label" style="margin:0;">🌟 Manfaat Utama &amp; Nilai Tambah</label>
+                  <button type="button" id="btnToggleBenefitsHtml" onclick="toggleBenefitsHtmlMode()" class="btn-action-sm" style="font-size:11px; padding:3px 8px;">
+                    &lt;&sol;&gt; Mode HTML
+                  </button>
+                </div>
+                <div id="quillBenefitsWrapper">
+                  <div id="quillBenefitsEditor"></div>
+                </div>
+                <textarea id="rawBenefitsTextarea" class="raw-html-textarea" placeholder="Manfaat utama e-book..."></textarea>
+                <input type="hidden" id="editBenefits" name="benefits">
+                <div style="font-size:11px; color:#64748b; margin-top:4px; display:flex; justify-content:space-between;">
+                  <span>Keuntungan langsung, instrumen kerja, checklist.</span>
+                  <span id="benefitsStats">0 karakter</span>
+                </div>
               </div>
             </div>
           </div>
@@ -2150,10 +2189,16 @@ $maskedEmail = substr(ADMIN_EMAIL, 0, 3) . '***@' . explode('@', ADMIN_EMAIL)[1]
     let heroDescQuill = null;
     let lmsLessonQuill = null;
     let courseQuill = null;
+    let tocQuill = null;
+    let targetAudienceQuill = null;
+    let benefitsQuill = null;
     let isHtmlMode = false;
     let isHeroDescHtmlMode = false;
     let isCourseHtmlMode = false;
     let isLmsLessonHtmlMode = false;
+    let isTocHtmlMode = false;
+    let isTargetHtmlMode = false;
+    let isBenefitsHtmlMode = false;
     let isTitleRawMode = false;
 
     // Standard Full-Featured Executive WYSIWYG Toolbar
@@ -2169,6 +2214,16 @@ $maskedEmail = substr(ADMIN_EMAIL, 0, 3) . '***@' . explode('@', ADMIN_EMAIL)[1]
       [{ 'align': [] }],
       ['link', 'image', 'video'],
       ['clean']
+    ];
+
+    // Toolbar Kompak & Kaya Format untuk Sub-Seksi Tab Halaman Publik
+    const QUILL_SECTION_TOOLBAR = [
+      [{ 'header': [2, 3, 4, false] }],
+      ['bold', 'italic', 'underline', 'strike'],
+      [{ 'color': [] }, { 'background': [] }],
+      [{ 'list': 'ordered' }, { 'list': 'bullet' }, { 'list': 'check' }],
+      [{ 'align': [] }],
+      ['link', 'clean']
     ];
 
     // Helper: Hitung statistik karakter, kata, dan waktu baca
@@ -2294,6 +2349,63 @@ $maskedEmail = substr(ADMIN_EMAIL, 0, 3) . '***@' . explode('@', ADMIN_EMAIL)[1]
             updateEditorStats(courseQuill, 'courseDescStats');
             const raw = document.getElementById('rawCourseTextarea');
             if (raw && !isCourseHtmlMode) raw.value = courseQuill.root.innerHTML;
+          });
+        }
+      }
+
+      // 5. Editor Silabus & Daftar Isi E-Book (WYSIWYG)
+      if (!tocQuill) {
+        const tEl = document.getElementById('quillTocEditor');
+        if (tEl && typeof Quill !== 'undefined') {
+          tocQuill = new Quill('#quillTocEditor', {
+            theme: 'snow',
+            placeholder: 'Tuliskan rincian silabus, bab dan modul pembahasan materi...',
+            modules: { toolbar: QUILL_SECTION_TOOLBAR }
+          });
+          tocQuill.on('text-change', function() {
+            updateEditorStats(tocQuill, 'tocStats');
+            const raw = document.getElementById('rawTocTextarea');
+            if (raw && !isTocHtmlMode) raw.value = tocQuill.root.innerHTML;
+            const hidden = document.getElementById('editTableOfContents');
+            if (hidden) hidden.value = tocQuill.root.innerHTML;
+          });
+        }
+      }
+
+      // 6. Editor Target Pembaca & Sasaran Organisasi (WYSIWYG)
+      if (!targetAudienceQuill) {
+        const tgEl = document.getElementById('quillTargetAudienceEditor');
+        if (tgEl && typeof Quill !== 'undefined') {
+          targetAudienceQuill = new Quill('#quillTargetAudienceEditor', {
+            theme: 'snow',
+            placeholder: 'Tuliskan profil sasaran, peran kerja (CISO, Auditor, DPO), atau instansi...',
+            modules: { toolbar: QUILL_SECTION_TOOLBAR }
+          });
+          targetAudienceQuill.on('text-change', function() {
+            updateEditorStats(targetAudienceQuill, 'targetStats');
+            const raw = document.getElementById('rawTargetTextarea');
+            if (raw && !isTargetHtmlMode) raw.value = targetAudienceQuill.root.innerHTML;
+            const hidden = document.getElementById('editTargetAudience');
+            if (hidden) hidden.value = targetAudienceQuill.root.innerHTML;
+          });
+        }
+      }
+
+      // 7. Editor Manfaat Utama & Nilai Tambah (WYSIWYG)
+      if (!benefitsQuill) {
+        const bEl = document.getElementById('quillBenefitsEditor');
+        if (bEl && typeof Quill !== 'undefined') {
+          benefitsQuill = new Quill('#quillBenefitsEditor', {
+            theme: 'snow',
+            placeholder: 'Tuliskan keunggulan praktis, checklist siap pakai, nilai tambah e-book...',
+            modules: { toolbar: QUILL_SECTION_TOOLBAR }
+          });
+          benefitsQuill.on('text-change', function() {
+            updateEditorStats(benefitsQuill, 'benefitsStats');
+            const raw = document.getElementById('rawBenefitsTextarea');
+            if (raw && !isBenefitsHtmlMode) raw.value = benefitsQuill.root.innerHTML;
+            const hidden = document.getElementById('editBenefits');
+            if (hidden) hidden.value = benefitsQuill.root.innerHTML;
           });
         }
       }
@@ -3426,10 +3538,40 @@ $maskedEmail = substr(ADMIN_EMAIL, 0, 3) . '***@' . explode('@', ADMIN_EMAIL)[1]
       document.getElementById('editIsbn').value = isNew ? '' : (p.isbn || '');
       document.getElementById('editOrderIndex').value = isNew ? 0 : (p.order_index || 0);
 
+      // Helper untuk menjaga format teks atau HTML pada editor
+      function toSafeEditorContent(val) {
+        if (!val) return '';
+        if (/<[a-z][\s\S]*>/i.test(val)) return val;
+        return val.split(/\r?\n/).map(line => line.trim() ? `<p>${line}</p>` : '<p><br></p>').join('');
+      }
+
       // Tab Silabus, Target, Manfaat
-      document.getElementById('editTableOfContents').value = isNew ? '' : (p.table_of_contents || '');
-      document.getElementById('editTargetAudience').value = isNew ? '' : (p.target_audience || '');
-      document.getElementById('editBenefits').value = isNew ? '' : (p.benefits || '');
+      const tocHtml = toSafeEditorContent(isNew ? '' : (p.table_of_contents || ''));
+      if (tocQuill) {
+        tocQuill.root.innerHTML = tocHtml;
+        updateEditorStats(tocQuill, 'tocStats');
+      }
+      document.getElementById('editTableOfContents').value = tocHtml;
+      document.getElementById('rawTocTextarea').value = tocHtml;
+      if (isTocHtmlMode) toggleTocHtmlMode();
+
+      const targetHtml = toSafeEditorContent(isNew ? '' : (p.target_audience || ''));
+      if (targetAudienceQuill) {
+        targetAudienceQuill.root.innerHTML = targetHtml;
+        updateEditorStats(targetAudienceQuill, 'targetStats');
+      }
+      document.getElementById('editTargetAudience').value = targetHtml;
+      document.getElementById('rawTargetTextarea').value = targetHtml;
+      if (isTargetHtmlMode) toggleTargetHtmlMode();
+
+      const benefitsHtml = toSafeEditorContent(isNew ? '' : (p.benefits || ''));
+      if (benefitsQuill) {
+        benefitsQuill.root.innerHTML = benefitsHtml;
+        updateEditorStats(benefitsQuill, 'benefitsStats');
+      }
+      document.getElementById('editBenefits').value = benefitsHtml;
+      document.getElementById('rawBenefitsTextarea').value = benefitsHtml;
+      if (isBenefitsHtmlMode) toggleBenefitsHtmlMode();
 
       updateSlugLivePreview(isNew ? '' : (p.slug || p.id));
 
@@ -3557,98 +3699,90 @@ $maskedEmail = substr(ADMIN_EMAIL, 0, 3) . '***@' . explode('@', ADMIN_EMAIL)[1]
       }
     }
 
-    function insertEditorTemplate(type) {
-      if (!productQuill) return;
-
-      if (type === 'clear') {
-        if (confirm('Kosongkan konten editor e-book ini?')) {
-          productQuill.root.innerHTML = '';
-          document.getElementById('rawHtmlTextarea').value = '';
-          updateEditorStats(productQuill, 'editorStats');
-        }
-        return;
-      }
-
-      let templateHtml = '';
-      if (type === 'silabus') {
-        templateHtml = `
-          <h3 style="color:#0f172a; margin-top:16px;">Ringkasan Silabus &amp; Bab Pembahasan:</h3>
-          <ul>
-            <li><strong>Bab 1:</strong> Konteks Tata Kelola &amp; Landasan Regulasi Nasional (UU PDP &amp; Standar BSSN)</li>
-            <li><strong>Bab 2:</strong> Analisis Kesenjangan (Gap Analysis) &amp; Penilaian Risiko Keamanan Siber</li>
-            <li><strong>Bab 3:</strong> Langkah Praktis Implementasi &amp; Standard Operating Procedure (SOP) Organisasi</li>
-            <li><strong>Bab 4:</strong> Mekanisme Audit Internal, Monitoring &amp; Evaluasi Kepatuhan Sistem Manajemen</li>
-          </ul>
-        `;
-      } else if (type === 'target') {
-        templateHtml = `
-          <h3 style="color:#0f172a; margin-top:16px;">Siapa yang Wajib Memiliki Dokumen Ini?</h3>
-          <ul>
-            <li><strong>CISO &amp; Information Security Officer:</strong> Acuan arsitektur keamanan informasi korporasi.</li>
-            <li><strong>Data Protection Officer (DPO) &amp; Legal:</strong> Memastikan kepatuhan data pribadi dan mitigasi sanksi regulasi.</li>
-            <li><strong>Auditor Internal &amp; Konsultan TI:</strong> Panduan langkah demi langkah saat melakukan audit kepatuhan.</li>
-          </ul>
-        `;
-      } else if (type === 'callout') {
-        templateHtml = `
-          <blockquote style="border-left:4px solid #0284c7; background:#f0f9ff; padding:14px 18px; border-radius:0 10px 10px 0; color:#0369a1; margin:16px 0;">
-            <strong>💡 Catatan Penting Auditor:</strong>
-            Dokumen ini dirancang mengacu pada standar internasional terkini dan telah teruji di berbagai implementasi industri perbankan, telekomunikasi, dan instansi publik.
-          </blockquote>
-        `;
-      } else if (type === 'highlight') {
-        templateHtml = `
-          <h3 style="color:#0f172a; margin-top:16px;">Nilai Tambah &amp; Keunggulan Dokumen:</h3>
-          <ul>
-            <li>✅ <strong>100% Praktis &amp; Terstruktur:</strong> Tidak sekadar teori, dilengkapi contoh kasus implementasi nyata di Indonesia.</li>
-            <li>✅ <strong>Siap Eksekusi (Ready-to-Use):</strong> Dilengkapi template formulir dan matriks yang dapat langsung diadopsi.</li>
-            <li>✅ <strong>Lisensi Resmi Terverifikasi:</strong> Berkas PDF master dipersonalisasi dengan stempel DRM resmi atas nama Anda.</li>
-          </ul>
-        `;
-      } else if (type === 'instrumen') {
-        templateHtml = `
-          <blockquote style="border-left:4px solid #059669; background:#ecfdf5; padding:14px 18px; border-radius:0 10px 10px 0; color:#065f46; margin:16px 0;">
-            <strong>🔍 Bonus Paket Instrumen Kerja:</strong> Pembelian dokumen ini dilengkapi dengan matriks penilaian mandiri (Self-Assessment Sheet), checklist audit kepatuhan, dan format pelaporan resmi yang dapat disesuaikan langsung dengan kebutuhan instansi Anda.
-          </blockquote>
-        `;
-      } else if (type === 'table') {
-        templateHtml = `
-          <h3 style="color:#0f172a; margin-top:16px;">Spesifikasi Dokumen Digital:</h3>
-          <table style="width:100%; border-collapse:collapse; margin:12px 0;">
-            <thead>
-              <tr style="background:#f1f5f9;">
-                <th style="border:1px solid #cbd5e1; padding:8px 12px; text-align:left;">Parameter</th>
-                <th style="border:1px solid #cbd5e1; padding:8px 12px; text-align:left;">Keterangan Resmi</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td style="border:1px solid #cbd5e1; padding:8px 12px; font-weight:700;">Format Berkas</td>
-                <td style="border:1px solid #cbd5e1; padding:8px 12px;">PDF Digital (DRM Watermark Personal)</td>
-              </tr>
-              <tr>
-                <td style="border:1px solid #cbd5e1; padding:8px 12px; font-weight:700;">Bahasa</td>
-                <td style="border:1px solid #cbd5e1; padding:8px 12px;">Bahasa Indonesia (Standar Eksekutif)</td>
-              </tr>
-              <tr>
-                <td style="border:1px solid #cbd5e1; padding:8px 12px; font-weight:700;">Pembaruan</td>
-                <td style="border:1px solid #cbd5e1; padding:8px 12px;">Edisi Revisi 2026 (Terbaru)</td>
-              </tr>
-              <tr>
-                <td style="border:1px solid #cbd5e1; padding:8px 12px; font-weight:700;">Hak Penggunaan</td>
-                <td style="border:1px solid #cbd5e1; padding:8px 12px;">Lisensi Tunggal Instansi &amp; Pribadi</td>
-              </tr>
-            </tbody>
-          </table>
-        `;
-      }
-
-      if (isHtmlMode) {
-        document.getElementById('rawHtmlTextarea').value += "\n" + templateHtml;
+    // Toggle HTML Source Mode untuk Silabus / Daftar Isi
+    function toggleTocHtmlMode() {
+      const qWrap = document.getElementById('quillTocWrapper');
+      const rawText = document.getElementById('rawTocTextarea');
+      const btn = document.getElementById('btnToggleTocHtml');
+      if (!isTocHtmlMode) {
+        const html = tocQuill ? tocQuill.root.innerHTML : '';
+        rawText.value = html;
+        qWrap.style.display = 'none';
+        rawText.style.display = 'block';
+        btn.innerText = '👁️ Visual';
+        btn.style.background = '#e0f2fe';
+        btn.style.color = '#0284c7';
+        isTocHtmlMode = true;
       } else {
-        const cur = productQuill.root.innerHTML;
-        productQuill.root.innerHTML = cur + templateHtml;
-        updateEditorStats(productQuill, 'editorStats');
+        const html = rawText.value;
+        if (tocQuill) {
+          tocQuill.root.innerHTML = html;
+          updateEditorStats(tocQuill, 'tocStats');
+        }
+        rawText.style.display = 'none';
+        qWrap.style.display = 'block';
+        btn.innerText = '</> Mode HTML';
+        btn.style.background = '#f8fafc';
+        btn.style.color = 'inherit';
+        isTocHtmlMode = false;
+      }
+    }
+
+    // Toggle HTML Source Mode untuk Target Pembaca
+    function toggleTargetHtmlMode() {
+      const qWrap = document.getElementById('quillTargetWrapper');
+      const rawText = document.getElementById('rawTargetTextarea');
+      const btn = document.getElementById('btnToggleTargetHtml');
+      if (!isTargetHtmlMode) {
+        const html = targetAudienceQuill ? targetAudienceQuill.root.innerHTML : '';
+        rawText.value = html;
+        qWrap.style.display = 'none';
+        rawText.style.display = 'block';
+        btn.innerText = '👁️ Visual';
+        btn.style.background = '#e0f2fe';
+        btn.style.color = '#0284c7';
+        isTargetHtmlMode = true;
+      } else {
+        const html = rawText.value;
+        if (targetAudienceQuill) {
+          targetAudienceQuill.root.innerHTML = html;
+          updateEditorStats(targetAudienceQuill, 'targetStats');
+        }
+        rawText.style.display = 'none';
+        qWrap.style.display = 'block';
+        btn.innerText = '</> Mode HTML';
+        btn.style.background = '#f8fafc';
+        btn.style.color = 'inherit';
+        isTargetHtmlMode = false;
+      }
+    }
+
+    // Toggle HTML Source Mode untuk Manfaat Utama
+    function toggleBenefitsHtmlMode() {
+      const qWrap = document.getElementById('quillBenefitsWrapper');
+      const rawText = document.getElementById('rawBenefitsTextarea');
+      const btn = document.getElementById('btnToggleBenefitsHtml');
+      if (!isBenefitsHtmlMode) {
+        const html = benefitsQuill ? benefitsQuill.root.innerHTML : '';
+        rawText.value = html;
+        qWrap.style.display = 'none';
+        rawText.style.display = 'block';
+        btn.innerText = '👁️ Visual';
+        btn.style.background = '#e0f2fe';
+        btn.style.color = '#0284c7';
+        isBenefitsHtmlMode = true;
+      } else {
+        const html = rawText.value;
+        if (benefitsQuill) {
+          benefitsQuill.root.innerHTML = html;
+          updateEditorStats(benefitsQuill, 'benefitsStats');
+        }
+        rawText.style.display = 'none';
+        qWrap.style.display = 'block';
+        btn.innerText = '</> Mode HTML';
+        btn.style.background = '#f8fafc';
+        btn.style.color = 'inherit';
+        isBenefitsHtmlMode = false;
       }
     }
 
@@ -3849,9 +3983,13 @@ $maskedEmail = substr(ADMIN_EMAIL, 0, 3) . '***@' . explode('@', ADMIN_EMAIL)[1]
       formData.append('master_file', document.getElementById('editMasterFile').value);
       formData.append('cover_image', document.getElementById('editCoverImage').value);
       formData.append('description', descHtml);
-      formData.append('table_of_contents', document.getElementById('editTableOfContents').value);
-      formData.append('target_audience', document.getElementById('editTargetAudience').value);
-      formData.append('benefits', document.getElementById('editBenefits').value);
+      const tocFinal = isTocHtmlMode ? document.getElementById('rawTocTextarea').value : (tocQuill ? tocQuill.root.innerHTML : document.getElementById('editTableOfContents').value);
+      const targetFinal = isTargetHtmlMode ? document.getElementById('rawTargetTextarea').value : (targetAudienceQuill ? targetAudienceQuill.root.innerHTML : document.getElementById('editTargetAudience').value);
+      const benefitsFinal = isBenefitsHtmlMode ? document.getElementById('rawBenefitsTextarea').value : (benefitsQuill ? benefitsQuill.root.innerHTML : document.getElementById('editBenefits').value);
+
+      formData.append('table_of_contents', tocFinal);
+      formData.append('target_audience', targetFinal);
+      formData.append('benefits', benefitsFinal);
 
       // Lampirkan berkas gambar baru jika dipilih
       const coverInput = document.getElementById('uploadCoverImage');
