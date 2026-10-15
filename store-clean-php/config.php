@@ -38,3 +38,6 @@ define('CALLBACK_URL', APP_URL . '/payment/result');
 // Admin Auth
 define('ADMIN_PASSWORD', '##Bismillah26');
 define('ADMIN_EMAIL', 'restia@restiamoegiono.com');
+
+// Token Rahasia Kriptografi Unduhan Terproteksi
+define('DOWNLOAD_SALT', 'RM_SECURE_DOWNLOAD_KEY_#Bismillah26_2026!');

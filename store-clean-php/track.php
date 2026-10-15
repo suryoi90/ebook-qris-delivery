@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/db.php';
+require_once __DIR__ . '/services/DownloadService.php';
 
 $db = StoreDB::get();
 $searchQuery = trim($_GET['q'] ?? ($_GET['invoice'] ?? ''));
@@ -203,18 +204,37 @@ if (!empty($searchQuery)) {
     .btn-action-download {
       padding: 10px 18px;
       border-radius: 10px;
-      background: var(--color-cyan);
-      color: #ffffff;
+      background: linear-gradient(135deg, #F2B200 0%, #d97706 100%);
+      color: #0F224A;
       font-size: 13px;
       font-weight: 800;
-      border: none;
+      border: 1px solid rgba(242, 178, 0, 0.4);
       cursor: pointer;
       display: inline-flex;
       align-items: center;
       gap: 6px;
+      text-decoration: none;
       transition: all 0.15s;
+      white-space: nowrap;
     }
-    .btn-action-download:hover { background: var(--color-navy); }
+    .btn-action-download:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(242, 178, 0, 0.35); color: #000; }
+
+    .btn-action-resend {
+      padding: 7px 12px;
+      border-radius: 8px;
+      background: #F8FAFC;
+      color: var(--color-navy);
+      font-size: 11px;
+      font-weight: 700;
+      border: 1px solid #CBD5E1;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .btn-action-resend:hover { background: #E2E8F0; }
 
     /* Footer */
     footer {
@@ -299,6 +319,22 @@ if (!empty($searchQuery)) {
                 <span class="invoice-tag"><?= htmlspecialchars($ord['invoice_number']) ?></span>
                 <?php 
                   $itemsList = !empty($ord['items_json']) ? json_decode($ord['items_json'], true) : [];
+                  $downloadItems = [];
+                  if ($isPaid) {
+                      if (!empty($itemsList)) {
+                          foreach ($itemsList as $it) {
+                              $pId = $it['id'] ?? $it['product_id'] ?? $ord['product_id'];
+                              $pTitle = $it['title'] ?? $ord['prod_title'] ?? $pId;
+                              $dlUrl = DownloadService::generateDownloadUrl($ord['invoice_number'], $pId, $ord['customer_email']);
+                              $downloadItems[] = ['id' => $pId, 'title' => $pTitle, 'url' => $dlUrl];
+                          }
+                      } else {
+                          $pId = $ord['product_id'];
+                          $pTitle = $ord['prod_title'] ?: ($ord['product_title'] ?: $pId);
+                          $dlUrl = DownloadService::generateDownloadUrl($ord['invoice_number'], $pId, $ord['customer_email']);
+                          $downloadItems[] = ['id' => $pId, 'title' => $pTitle, 'url' => $dlUrl];
+                      }
+                  }
                 ?>
                 <?php if (!empty($itemsList) && count($itemsList) > 1): ?>
                   <div class="order-prod-title" style="margin-bottom:2px;">Paket <?= count($itemsList) ?> E-Book:</div>
@@ -322,16 +358,22 @@ if (!empty($searchQuery)) {
                   </span>
                 </div>
                 <?php if ($isPaid && !empty($ord['pdf_password'])): ?>
-                  <div style="margin-top:8px; display:inline-flex; align-items:center; gap:8px; background:#f0fdf4; border:1px dashed #059669; padding:5px 12px; border-radius:8px;">
+                  <div style="margin-top:8px; display:inline-flex; align-items:center; gap:8px; background:#f0fdf4; border:1px dashed #059669; padding:6px 12px; border-radius:8px;">
                     <span style="font-size:11px; font-weight:800; color:#047857;">🔐 Password PDF:</span>
                     <code style="font-size:15px; font-weight:900; color:#065f46; letter-spacing:3px; font-family:'SF Mono',Consolas,monospace;"><?= htmlspecialchars($ord['pdf_password']) ?></code>
+                    <button type="button" onclick="navigator.clipboard.writeText('<?= htmlspecialchars($ord['pdf_password']) ?>'); alert('Password berhasil disalin: <?= htmlspecialchars($ord['pdf_password']) ?>');" style="background:#e0f2fe; border:none; border-radius:4px; padding:3px 8px; font-size:11px; font-weight:700; color:#0369a1; cursor:pointer;">Salin</button>
                   </div>
                 <?php endif; ?>
               </div>
-              <div>
+              <div style="display:flex; flex-direction:column; gap:8px; align-items:flex-end;">
                 <?php if ($isPaid): ?>
-                  <button type="button" class="btn-action-download" onclick="requestResendEmail('<?= htmlspecialchars($ord['invoice_number']) ?>')">
-                    📩 Kirim Ulang Email
+                  <?php foreach ($downloadItems as $dItem): ?>
+                    <a href="<?= htmlspecialchars($dItem['url']) ?>" class="btn-action-download" download>
+                      📥 Unduh <?= htmlspecialchars(count($downloadItems) > 1 ? $dItem['title'] : 'Berkas PDF') ?>
+                    </a>
+                  <?php endforeach; ?>
+                  <button type="button" class="btn-action-resend" onclick="requestResendEmail('<?= htmlspecialchars($ord['invoice_number']) ?>')">
+                    📩 Kirim Ulang Link ke Email
                   </button>
                 <?php else: ?>
                   <span style="font-size:12px; color:#b45309; font-weight:700;">Menunggu verifikasi DOKU</span>

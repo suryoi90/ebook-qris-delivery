@@ -3,6 +3,7 @@ require_once __DIR__ . '/../config.php';
 require_once __DIR__ . '/../db.php';
 require_once __DIR__ . '/WatermarkService.php';
 require_once __DIR__ . '/MailService.php';
+require_once __DIR__ . '/DownloadService.php';
 
 class FulfillmentService
 {
@@ -86,13 +87,27 @@ class FulfillmentService
                 ? $productTitles[0] 
                 : ('Paket ' . count($productTitles) . ' E-Book: ' . implode(', ', $productTitles));
 
-            // 2. Eksekusi Pengiriman Email Berlampiran Seluruh PDF via SMTP cPanel
-            MailService::sendEbook(
+            // Siapkan daftar item lengkap dengan tautan unduh ber-token tanda tangan
+            $itemsWithLinks = [];
+            foreach ($items as $it) {
+                $itemsWithLinks[] = [
+                    'id' => $it['id'],
+                    'title' => $it['title'],
+                    'download_url' => DownloadService::generateDownloadUrl(
+                        $invoiceNumber,
+                        $it['id'],
+                        $order['customer_email']
+                    )
+                ];
+            }
+
+            // 2. Eksekusi Pengiriman 1 Email Terpadu (Super Ringan < 30 KB, Bebas Masalah Kuota Lampiran)
+            MailService::sendDeliveryEmail(
                 $order['customer_email'],
                 $order['customer_name'],
                 $displayTitle,
                 $invoiceNumber,
-                $generatedPdfPaths,
+                $itemsWithLinks,
                 $pdfPassword
             );
 
@@ -133,7 +148,8 @@ class FulfillmentService
                 'message' => 'Watermark dan password PDF berhasil dipasang serta email telah dikirimkan ke pembeli!',
                 'invoice' => $invoiceNumber,
                 'pdf_path' => count($generatedPdfPaths) === 1 ? $generatedPdfPaths[0] : $generatedPdfPaths,
-                'pdf_password' => $pdfPassword
+                'pdf_password' => $pdfPassword,
+                'download_links' => $itemsWithLinks
             ];
 
         } catch (Throwable $e) {

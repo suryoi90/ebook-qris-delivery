@@ -4,6 +4,7 @@ header('Content-Type: application/json; charset=utf-8');
 require_once __DIR__ . '/../config.php';
 require_once __DIR__ . '/../db.php';
 require_once __DIR__ . '/../services/FulfillmentService.php';
+require_once __DIR__ . '/../services/DownloadService.php';
 
 $rawInput = json_decode(file_get_contents('php://input'), true) ?: [];
 $invoice = trim($_GET['invoice'] ?? ($_POST['invoice'] ?? ($rawInput['invoice'] ?? ($rawInput['invoice_number'] ?? ''))));
@@ -53,20 +54,20 @@ try {
 
         echo json_encode([
             'success' => true,
-            'message' => "Berkas PDF ber-watermark resmi berhasil dikirimkan ulang ke alamat email: {$order['customer_email']}!"
+            'message' => "Tautan unduh e-book resmi dan password PDF berhasil dikirimkan ulang ke alamat email: {$order['customer_email']}!"
         ]);
         exit;
     }
 
     // 2. Pencarian Status Pesanan
     if (!empty($invoice)) {
-        $stmt = $db->prepare("SELECT `invoice_number`, `product_title`, `items_json`, `customer_name`, `customer_email`, `amount`, `discount_amount`, `coupon_code`, `payment_status`, `pdf_password`, `email_sent`, `email_sent_at`, `created_at` 
+        $stmt = $db->prepare("SELECT `id`, `product_id`, `invoice_number`, `product_title`, `items_json`, `customer_name`, `customer_email`, `amount`, `discount_amount`, `coupon_code`, `payment_status`, `pdf_password`, `email_sent`, `email_sent_at`, `created_at` 
             FROM `store_orders` WHERE `invoice_number` = ? LIMIT 1");
         $stmt->execute([$invoice]);
         $order = $stmt->fetch();
         $orders = $order ? [$order] : [];
     } else {
-        $stmt = $db->prepare("SELECT `invoice_number`, `product_title`, `items_json`, `customer_name`, `customer_email`, `amount`, `discount_amount`, `coupon_code`, `payment_status`, `pdf_password`, `email_sent`, `email_sent_at`, `created_at` 
+        $stmt = $db->prepare("SELECT `id`, `product_id`, `invoice_number`, `product_title`, `items_json`, `customer_name`, `customer_email`, `amount`, `discount_amount`, `coupon_code`, `payment_status`, `pdf_password`, `email_sent`, `email_sent_at`, `created_at` 
             FROM `store_orders` WHERE LOWER(`customer_email`) = LOWER(?) ORDER BY `id` DESC LIMIT 10");
         $stmt->execute([$email]);
         $orders = $stmt->fetchAll();
@@ -81,11 +82,31 @@ try {
     $formatted = array_map(function($o) {
         $isPaid = in_array($o['payment_status'], ['PAID', 'SUCCESS']);
         $items = !empty($o['items_json']) ? json_decode($o['items_json'], true) : [];
+        if (empty($items)) {
+            $items = [[
+                'id' => $o['product_id'] ?: 'course-iso-27001',
+                'title' => $o['product_title'] ?: 'E-Book Berlisensi Resmi',
+            ]];
+        }
+
+        if ($isPaid) {
+            foreach ($items as &$it) {
+                $itId = $it['id'] ?? ($o['product_id'] ?: 'course-iso-27001');
+                $it['download_url'] = DownloadService::generateDownloadUrl(
+                    $o['invoice_number'],
+                    $itId,
+                    $o['customer_email']
+                );
+            }
+            unset($it);
+        }
+
         return [
             'invoice' => $o['invoice_number'],
             'product_title' => $o['product_title'],
             'items' => $items,
             'items_count' => count($items) ?: 1,
+            'download_url' => ($isPaid && !empty($items[0]['download_url'])) ? $items[0]['download_url'] : null,
             'customer_name' => $o['customer_name'],
             'customer_email' => $o['customer_email'],
             'amount' => (int)$o['amount'],

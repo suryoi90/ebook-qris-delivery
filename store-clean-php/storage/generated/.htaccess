@@ -1,0 +1,8 @@
+# Proteksi Berkas PDF Hasil Watermark - Akses Publik Langsung Ditolak
+# Hanya dapat diakses melalui skrip download.php yang terotentikasi
+<IfModule mod_authz_core.c>
+  Require all denied
+</IfModule>
+<IfModule !mod_authz_core.c>
+  Deny from all
+</IfModule>

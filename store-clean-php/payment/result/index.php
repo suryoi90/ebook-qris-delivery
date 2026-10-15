@@ -83,7 +83,7 @@ $invoice = htmlspecialchars($_GET['invoice'] ?? '', ENT_QUOTES, 'UTF-8');
     </div>
 
     <div id="noticePaid" style="display:none; background:#ecfdf5; border:1px solid #a7f3d0; border-radius:12px; padding:14px; font-size:13px; color:#065f46; margin-bottom:16px;">
-      ✓ Berkas PDF e-book dengan stempel watermark lisensi resmi Anda telah diproses &amp; dikirimkan ke email. Silakan periksa kotak masuk (inbox) atau folder spam.
+      ✓ Berkas PDF e-book dengan stempel watermark lisensi resmi Anda telah siap diunduh di bawah ini. Tautan cadangan juga telah dikirimkan ke kotak masuk email Anda.
     </div>
 
     <!-- KARTU PASSWORD PDF -->
@@ -96,7 +96,20 @@ $invoice = htmlspecialchars($_GET['invoice'] ?? '', ENT_QUOTES, 'UTF-8');
         <button id="btnCopyPwd" onclick="copyPassword()" type="button" style="background: #059669; color: #ffffff; border: none; border-radius: 8px; padding: 8px 14px; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: background 0.15s;">Salin</button>
       </div>
       <div style="font-size: 12px; color: #047857;">
-        Gunakan 6 karakter acak di atas untuk membuka lampiran berkas PDF berlisensi resmi Anda.
+        Gunakan 6 karakter acak di atas saat membuka berkas PDF hasil unduhan Anda.
+      </div>
+    </div>
+
+    <!-- KARTU DAFTAR UNDUHAN E-BOOK LANGSUNG -->
+    <div id="downloadButtonsCard" style="display:none; background:#ffffff; border:1px solid #D6EAFF; border-radius:18px; padding:20px; margin-bottom:20px; text-align:left;">
+      <div style="font-size:13px; font-weight:800; color:#0F224A; margin-bottom:12px; display:flex; align-items:center; gap:6px;">
+        <span>📥</span> Unduh Berkas E-Book Anda Sekarang:
+      </div>
+      <div id="downloadListContainer" style="display:flex; flex-direction:column; gap:10px;">
+        <!-- Rendered by JS -->
+      </div>
+      <div style="font-size:11.5px; color:#64748b; margin-top:12px; line-height:1.4;">
+        💡 <b>Tips:</b> Berkas PDF telah dilindungi stempel watermark nama dan lisensi Anda. Gunakan aplikasi Adobe Acrobat Reader / Google Chrome untuk pengalaman membaca terbaik.
       </div>
     </div>
 
@@ -141,6 +154,23 @@ $invoice = htmlspecialchars($_GET['invoice'] ?? '', ENT_QUOTES, 'UTF-8');
               currentPdfPassword = o.pdf_password;
               document.getElementById('passwordCard').style.display = 'block';
               document.getElementById('dispPdfPassword').innerText = o.pdf_password;
+            }
+
+            // Render tombol unduh untuk setiap e-book
+            if (o.items && o.items.length > 0) {
+              const dlContainer = document.getElementById('downloadListContainer');
+              dlContainer.innerHTML = o.items.map(it => {
+                const url = it.download_url || (`/download.php?inv=${encodeURIComponent(o.invoice)}&prod=${encodeURIComponent(it.id)}`);
+                return `
+                  <div style="background:#F8FAFC; border:1px solid #D6EAFF; border-radius:12px; padding:12px 14px; display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+                    <div style="font-size:12.5px; font-weight:800; color:#0F224A; flex:1; min-width:180px;">📘 ${it.title}</div>
+                    <a href="${url}" target="_blank" style="background:linear-gradient(135deg, #00AEFF, #0F224A); color:#ffffff; font-size:12px; font-weight:800; padding:8px 16px; border-radius:8px; text-decoration:none; display:inline-flex; align-items:center; gap:4px; box-shadow:0 3px 10px rgba(0,174,255,0.25);">
+                      📥 Unduh (PDF)
+                    </a>
+                  </div>
+                `;
+              }).join('');
+              document.getElementById('downloadButtonsCard').style.display = 'block';
             }
 
             if (o.email_sent) {
