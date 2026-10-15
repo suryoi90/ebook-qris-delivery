@@ -6,10 +6,23 @@ session_start();
 $errorMsg = '';
 $successMsg = '';
 
-// 1. Endpoint AJAX: Kirim Kode OTP ke Email
-if (isset($_GET['action']) && $_GET['action'] === 'request_otp') {
+// Batal / Reset 2FA ke Form Kata Sandi
+if (isset($_GET['cancel_2fa'])) {
+    unset($_SESSION['store_admin_2fa_pending']);
+    unset($_SESSION['store_admin_otp']);
+    unset($_SESSION['store_admin_otp_expires']);
+    header('Location: /admin/');
+    exit;
+}
+
+// 1. Endpoint AJAX: Kirim Ulang Kode OTP ke Email
+if (isset($_GET['action']) && $_GET['action'] === 'resend_otp') {
     header('Content-Type: application/json');
     try {
+        if (empty($_SESSION['store_admin_2fa_pending'])) {
+            throw new Exception("Sesi autentikasi belum diverifikasi. Silakan masukkan kata sandi terlebih dahulu.");
+        }
+
         $lastSent = $_SESSION['store_admin_otp_time'] ?? 0;
         if (time() - $lastSent < 30) {
             $wait = 30 - (time() - $lastSent);
@@ -23,9 +36,10 @@ if (isset($_GET['action']) && $_GET['action'] === 'request_otp') {
 
         MailService::sendAdminOtp(ADMIN_EMAIL, $otp);
 
+        $masked = substr(ADMIN_EMAIL, 0, 3) . '***@' . explode('@', ADMIN_EMAIL)[1];
         echo json_encode([
             'success' => true,
-            'message' => 'Kode OTP 6-digit berhasil dikirim ke email terdaftar. Silakan periksa inbox atau spam email Anda.'
+            'message' => "Kode OTP 6-digit baru berhasil dikirim ke email terdaftar ({$masked}). Silakan periksa inbox atau spam."
         ]);
     } catch (Exception $e) {
         http_response_code(400);
@@ -37,19 +51,48 @@ if (isset($_GET['action']) && $_GET['action'] === 'request_otp') {
     exit;
 }
 
-// 2. Submit Verifikasi OTP
-if (isset($_POST['login_otp_submit'])) {
+// 2. Tahap 1: Verifikasi Kata Sandi Utama
+if (isset($_POST['login_step1_submit'])) {
+    $pwd = trim($_POST['password'] ?? '');
+    if ($pwd === ADMIN_PASSWORD) {
+        // Sandi Benar -> Generate OTP & Kirim ke Email
+        try {
+            $otp = (string)random_int(100000, 999999);
+            $_SESSION['store_admin_2fa_pending'] = true;
+            $_SESSION['store_admin_otp'] = $otp;
+            $_SESSION['store_admin_otp_time'] = time();
+            $_SESSION['store_admin_otp_expires'] = time() + 600; // 10 menit
+
+            MailService::sendAdminOtp(ADMIN_EMAIL, $otp);
+
+            $masked = substr(ADMIN_EMAIL, 0, 3) . '***@' . explode('@', ADMIN_EMAIL)[1];
+            $successMsg = "Kata sandi terverifikasi! Kode OTP 6-digit telah dikirimkan ke kotak masuk email terdaftar ({$masked}).";
+        } catch (Exception $e) {
+            $errorMsg = 'Kata sandi benar, namun gagal mengirimkan kode OTP via email: ' . $e->getMessage();
+            unset($_SESSION['store_admin_2fa_pending']);
+        }
+    } else {
+        $errorMsg = 'Kata sandi salah. Silakan coba kembali.';
+    }
+}
+
+// 3. Tahap 2: Verifikasi Kode OTP Email (Double Protection)
+if (isset($_POST['login_step2_submit'])) {
     $enteredOtp = trim($_POST['otp_code'] ?? '');
     $savedOtp = $_SESSION['store_admin_otp'] ?? '';
     $otpExpiry = $_SESSION['store_admin_otp_expires'] ?? 0;
 
-    if (empty($enteredOtp)) {
+    if (empty($_SESSION['store_admin_2fa_pending'])) {
+        $errorMsg = 'Sesi masuk telah kedaluwarsa. Silakan masukkan kata sandi terlebih dahulu.';
+    } elseif (empty($enteredOtp)) {
         $errorMsg = 'Silakan masukkan 6 digit kode OTP.';
     } elseif (empty($savedOtp) || time() > $otpExpiry) {
-        $errorMsg = 'Kode OTP telah kadaluarsa atau belum diminta. Silakan minta kode baru.';
+        $errorMsg = 'Kode OTP telah kedaluwarsa (lebih dari 10 menit). Silakan klik "Kirim Ulang Kode OTP".';
     } elseif ($enteredOtp !== $savedOtp) {
-        $errorMsg = 'Kode OTP tidak sesuai. Pastikan 6 digit yang Anda masukkan benar.';
+        $errorMsg = 'Kode OTP tidak sesuai. Pastikan 6 digit angka yang Anda masukkan benar.';
     } else {
+        // Berhasil lolos Double Protection!
+        unset($_SESSION['store_admin_2fa_pending']);
         unset($_SESSION['store_admin_otp']);
         unset($_SESSION['store_admin_otp_expires']);
         $_SESSION['store_admin_auth'] = ADMIN_PASSWORD;
@@ -58,19 +101,10 @@ if (isset($_POST['login_otp_submit'])) {
     }
 }
 
-// 3. Submit Kata Sandi
-if (isset($_POST['login_submit'])) {
-    $pwd = trim($_POST['password'] ?? '');
-    if ($pwd === ADMIN_PASSWORD) {
-        $_SESSION['store_admin_auth'] = ADMIN_PASSWORD;
-    } else {
-        $errorMsg = 'Kata sandi salah. Silakan coba kembali.';
-    }
-}
-
 // 4. Logout
 if (isset($_GET['logout'])) {
     unset($_SESSION['store_admin_auth']);
+    unset($_SESSION['store_admin_2fa_pending']);
     unset($_SESSION['store_admin_otp']);
     unset($_SESSION['store_admin_otp_expires']);
     session_destroy();
@@ -79,7 +113,8 @@ if (isset($_GET['logout'])) {
 }
 
 $isLoggedIn = ($_SESSION['store_admin_auth'] ?? '') === ADMIN_PASSWORD;
-$hasActiveOtp = !empty($_SESSION['store_admin_otp']) && time() < ($_SESSION['store_admin_otp_expires'] ?? 0);
+$is2faPending = !$isLoggedIn && !empty($_SESSION['store_admin_2fa_pending']);
+$maskedEmail = substr(ADMIN_EMAIL, 0, 3) . '***@' . explode('@', ADMIN_EMAIL)[1];
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -620,146 +655,141 @@ $hasActiveOtp = !empty($_SESSION['store_admin_otp']) && time() < ($_SESSION['sto
 <body>
 
 <?php if (!$isLoggedIn): ?>
-  <!-- VIEW LOGIN -->
+  <!-- VIEW LOGIN DOUBLE PROTECTION (2FA) -->
   <div class="login-wrapper">
     <div class="login-card">
       <div class="vault-avatar">
         <img src="/images/author-restia-240.webp" alt="Restia Moegiono">
       </div>
-      <div class="login-tag">🔐 COMMAND VAULT</div>
-      <h1 class="login-title">Admin Briefcase</h1>
-      <p class="login-sub">Kelola produk e-book, watermark DRM, dan status order store.restiamoegiono.com</p>
 
-      <!-- TAB PILIHAN LOGIN: KATA SANDI ATAU OTP EMAIL -->
-      <div class="login-mode-tabs">
-        <button type="button" class="login-tab <?= $hasActiveOtp ? '' : 'active' ?>" id="tabBtnPassword" onclick="switchLoginMode('password')">
-          🔑 Kata Sandi
-        </button>
-        <button type="button" class="login-tab <?= $hasActiveOtp ? 'active' : '' ?>" id="tabBtnOtp" onclick="switchLoginMode('otp')">
-          📧 Kode OTP Email
-        </button>
-      </div>
+      <?php if (!$is2faPending): ?>
+        <!-- TAHAP 1: KATA SANDI VAULT -->
+        <div class="login-tag">🛡️ DOUBLE PROTECTION &bull; TAHAP 1 DARI 2</div>
+        <h1 class="login-title">Admin Command Vault</h1>
+        <p class="login-sub">Masukkan kata sandi admin utama untuk memverifikasi identitas dan menerima 6-digit kode OTP email.</p>
 
-      <?php if ($errorMsg): ?>
-        <div style="background:#fee2e2; border:1px solid #fecdd3; color:#b91c1c; padding:10px; border-radius:10px; font-size:12px; margin-bottom:14px;">
-          <?= htmlspecialchars($errorMsg) ?>
-        </div>
-      <?php endif; ?>
+        <?php if ($errorMsg): ?>
+          <div style="background:#fee2e2; border:1px solid #fecdd3; color:#b91c1c; padding:10px 14px; border-radius:12px; font-size:12px; margin-bottom:14px; text-align:left; font-weight:600;">
+            ⚠️ <?= htmlspecialchars($errorMsg) ?>
+          </div>
+        <?php endif; ?>
 
-      <?php if ($successMsg): ?>
-        <div style="background:#f0fdf4; border:1px solid #bbf7d0; color:#166534; padding:10px; border-radius:10px; font-size:12px; margin-bottom:14px;">
-          <?= htmlspecialchars($successMsg) ?>
-        </div>
-      <?php endif; ?>
+        <?php if ($successMsg): ?>
+          <div style="background:#f0fdf4; border:1px solid #bbf7d0; color:#166534; padding:10px 14px; border-radius:12px; font-size:12px; margin-bottom:14px; text-align:left; font-weight:600;">
+            ✓ <?= htmlspecialchars($successMsg) ?>
+          </div>
+        <?php endif; ?>
 
-      <!-- PANEL 1: LOGIN KATA SANDI -->
-      <div id="loginPanelPassword" style="display: <?= $hasActiveOtp ? 'none' : 'block' ?>;">
         <form method="POST">
           <div style="text-align:left; margin-bottom:6px;">
             <label style="font-size:12px; font-weight:700; color:#475569;">Kata Sandi Vault Admin</label>
           </div>
-          <input type="password" name="password" required placeholder="Masukkan Sandi Vault Admin..." class="login-input">
-          <button type="submit" name="login_submit" class="login-btn">Masuk dengan Sandi ➔</button>
-        </form>
-        <div style="margin-top:14px; font-size:12px; color:#64748b;">
-          Atau tidak ingat sandi? <a href="javascript:void(0)" onclick="switchLoginMode('otp')" style="color:#0284c7; font-weight:700; text-decoration:underline;">Masuk pakai Kode OTP Email</a>
-        </div>
-      </div>
-
-      <!-- PANEL 2: LOGIN KODE OTP EMAIL -->
-      <div id="loginPanelOtp" style="display: <?= $hasActiveOtp ? 'block' : 'none' ?>;">
-        <!-- Bagian A: Permintaan OTP Baru -->
-        <div id="otpRequestBox" style="display: <?= $hasActiveOtp ? 'none' : 'block' ?>; margin-top:10px;">
-          <button type="button" id="btnRequestOtp" onclick="requestAdminOtp()" class="login-btn" style="background:linear-gradient(135deg, #059669, #0d9488);">
-            ✉️ Kirim Kode OTP ke Email ➔
+          <input type="password" name="password" required autofocus placeholder="Masukkan Sandi Vault Admin..." class="login-input">
+          <button type="submit" name="login_step1_submit" class="login-btn">
+            Lanjutkan ke Verifikasi OTP ➔
           </button>
+        </form>
+
+        <div style="margin-top:20px; padding-top:14px; border-top:1px dashed #cbd5e1; font-size:11px; color:#64748b; line-height:1.5;">
+          🔒 <strong>Double Protection Aktif:</strong> Keamanan panel mengadopsi standar autentikasi dua tahap seperti Portal CMS. Setelah kata sandi terverifikasi, kode OTP 6-digit akan dikirimkan ke email resmi administrator.
         </div>
 
-        <!-- Bagian B: Input & Verifikasi OTP -->
-        <div id="otpVerifyBox" style="display: <?= $hasActiveOtp ? 'block' : 'none' ?>;">
-          <form method="POST">
-            <div style="text-align:left; margin-bottom:6px;">
-              <label style="font-size:12px; font-weight:700; color:#475569;">Masukkan 6 Digit Kode OTP</label>
-            </div>
-            <input type="text" name="otp_code" id="inputOtpCode" required maxlength="6" pattern="[0-9]{6}" placeholder="______" class="login-input" style="font-size:24px; font-weight:900; letter-spacing:8px; text-align:center; font-family:monospace;">
-            <button type="submit" name="login_otp_submit" class="login-btn">Verifikasi &amp; Masuk ➔</button>
-          </form>
-          <div style="margin-top:14px; font-size:12px; color:#64748b;">
-            Belum menerima email? <button type="button" id="btnResendOtp" onclick="requestAdminOtp()" style="background:none; border:none; color:#0284c7; font-weight:700; cursor:pointer; padding:0; text-decoration:underline;">Kirim Ulang OTP</button> <span id="resendCountdown" style="color:#94a3b8;"></span>
+      <?php else: ?>
+        <!-- TAHAP 2: VERIFIKASI KODE OTP EMAIL -->
+        <div class="login-tag" style="background:#ecfdf5; border-color:#a7f3d0; color:#065f46;">✉️ DOUBLE PROTECTION &bull; TAHAP 2 DARI 2</div>
+        <h1 class="login-title">Verifikasi Kode OTP</h1>
+        <p class="login-sub">
+          Kode 6-digit telah dikirim ke alamat email <strong><?= htmlspecialchars($maskedEmail) ?></strong>. Masukkan kode untuk menyelesaikan autentikasi.
+        </p>
+
+        <?php if ($errorMsg): ?>
+          <div style="background:#fee2e2; border:1px solid #fecdd3; color:#b91c1c; padding:10px 14px; border-radius:12px; font-size:12px; margin-bottom:14px; text-align:left; font-weight:600;">
+            ⚠️ <?= htmlspecialchars($errorMsg) ?>
+          </div>
+        <?php endif; ?>
+
+        <?php if ($successMsg): ?>
+          <div style="background:#f0fdf4; border:1px solid #bbf7d0; color:#166534; padding:10px 14px; border-radius:12px; font-size:12px; margin-bottom:14px; text-align:left; font-weight:600;">
+            ✓ <?= htmlspecialchars($successMsg) ?>
+          </div>
+        <?php endif; ?>
+
+        <form method="POST">
+          <div style="text-align:left; margin-bottom:6px;">
+            <label style="font-size:12px; font-weight:700; color:#475569;">Masukkan 6-Digit Kode OTP</label>
+          </div>
+          <input type="text" name="otp_code" id="inputOtpCode" required maxlength="6" pattern="[0-9]{6}" autofocus placeholder="______" class="login-input" style="font-size:24px; font-weight:900; letter-spacing:8px; text-align:center; font-family:monospace;">
+          <button type="submit" name="login_step2_submit" class="login-btn" style="background:linear-gradient(135deg, #059669, #0f172a);">
+            Verifikasi &amp; Masuk Dashboard ➔
+          </button>
+        </form>
+
+        <div style="margin-top:16px; font-size:12px; color:#64748b; display:flex; flex-direction:column; gap:10px;">
+          <div>
+            Belum menerima kode OTP?
+            <button type="button" id="btnResendOtp" onclick="resendAdminOtp()" style="background:none; border:none; color:#0284c7; font-weight:700; cursor:pointer; padding:0; text-decoration:underline;">
+              Kirim Ulang Kode OTP
+            </button> <span id="resendCountdown" style="color:#94a3b8; font-weight:700;"></span>
+          </div>
+          <div>
+            <a href="?cancel_2fa=1" style="color:#64748b; font-size:12px; text-decoration:none; font-weight:600;">
+              &larr; Batal &amp; Kembali ke Form Kata Sandi
+            </a>
           </div>
         </div>
-      </div>
+
+        <script>
+          let resendTimer = null;
+          let resendSeconds = 0;
+
+          function startResendCooldown(seconds) {
+            resendSeconds = seconds;
+            const resendBtn = document.getElementById('btnResendOtp');
+            const countdownSpan = document.getElementById('resendCountdown');
+            if (resendBtn) resendBtn.disabled = true;
+
+            clearInterval(resendTimer);
+            resendTimer = setInterval(() => {
+              resendSeconds--;
+              if (countdownSpan) countdownSpan.innerText = `(${resendSeconds}s)`;
+              if (resendSeconds <= 0) {
+                clearInterval(resendTimer);
+                if (countdownSpan) countdownSpan.innerText = '';
+                if (resendBtn) resendBtn.disabled = false;
+              }
+            }, 1000);
+          }
+
+          async function resendAdminOtp() {
+            const resendBtn = document.getElementById('btnResendOtp');
+            if (resendBtn) resendBtn.disabled = true;
+
+            try {
+              const res = await fetch('/admin/?action=resend_otp');
+              const data = await res.json();
+              if (data.success) {
+                alert('✓ ' + data.message);
+                const inputEl = document.getElementById('inputOtpCode');
+                if (inputEl) inputEl.focus();
+                startResendCooldown(30);
+              } else {
+                alert('Gagal: ' + (data.error || 'Terjadi kendala saat mengirim ulang kode OTP.'));
+                if (resendBtn) resendBtn.disabled = false;
+              }
+            } catch (e) {
+              alert('Terjadi kesalahan jaringan saat meminta kode OTP.');
+              if (resendBtn) resendBtn.disabled = false;
+            }
+          }
+
+          window.addEventListener('DOMContentLoaded', () => {
+            startResendCooldown(30);
+          });
+        </script>
+      <?php endif; ?>
 
     </div>
   </div>
-
-  <script>
-    let resendTimer = null;
-    let resendSeconds = 0;
-
-    function switchLoginMode(mode) {
-      const pTab = document.getElementById('tabBtnPassword');
-      const oTab = document.getElementById('tabBtnOtp');
-      const pPanel = document.getElementById('loginPanelPassword');
-      const oPanel = document.getElementById('loginPanelOtp');
-
-      if (mode === 'password') {
-        pTab.classList.add('active');
-        oTab.classList.remove('active');
-        pPanel.style.display = 'block';
-        oPanel.style.display = 'none';
-      } else {
-        oTab.classList.add('active');
-        pTab.classList.remove('active');
-        pPanel.style.display = 'none';
-        oPanel.style.display = 'block';
-      }
-    }
-
-    async function requestAdminOtp() {
-      const reqBtn = document.getElementById('btnRequestOtp');
-      const resendBtn = document.getElementById('btnResendOtp');
-      if (reqBtn) { reqBtn.disabled = true; reqBtn.innerText = 'Mengirim kode OTP...'; }
-      if (resendBtn) { resendBtn.disabled = true; }
-
-      try {
-        const res = await fetch('/admin/?action=request_otp');
-        const data = await res.json();
-        if (data.success) {
-          alert('✓ ' + data.message);
-          document.getElementById('otpRequestBox').style.display = 'none';
-          document.getElementById('otpVerifyBox').style.display = 'block';
-          const inputEl = document.getElementById('inputOtpCode');
-          if (inputEl) inputEl.focus();
-          startResendCooldown(45);
-        } else {
-          alert('Gagal: ' + (data.error || 'Terjadi kendala pengiriman.'));
-          if (reqBtn) { reqBtn.disabled = false; reqBtn.innerText = '✉️ Kirim Kode OTP ke Email ➔'; }
-        }
-      } catch (e) {
-        alert('Kesalahan jaringan saat meminta OTP.');
-        if (reqBtn) { reqBtn.disabled = false; reqBtn.innerText = '✉️ Kirim Kode OTP ke Email ➔'; }
-      }
-    }
-
-    function startResendCooldown(seconds) {
-      resendSeconds = seconds;
-      const resendBtn = document.getElementById('btnResendOtp');
-      const countdownSpan = document.getElementById('resendCountdown');
-      if (resendBtn) resendBtn.disabled = true;
-
-      clearInterval(resendTimer);
-      resendTimer = setInterval(() => {
-        resendSeconds--;
-        if (countdownSpan) countdownSpan.innerText = `(${resendSeconds}s)`;
-        if (resendSeconds <= 0) {
-          clearInterval(resendTimer);
-          if (countdownSpan) countdownSpan.innerText = '';
-          if (resendBtn) resendBtn.disabled = false;
-        }
-      }, 1000);
-    }
-  </script>
 <?php else: ?>
   <!-- VIEW DASHBOARD ADMIN -->
   <header class="dash-header">

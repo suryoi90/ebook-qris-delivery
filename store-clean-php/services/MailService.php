@@ -60,7 +60,7 @@ class MailService
 
             // Konten Email Berformat Eksekutif
             $mail->isHTML(true);
-            $mail->Subject = "Pengiriman Dokumen Resmi: {$productTitle} ({$invoiceNumber})";
+            $mail->Subject = "Pengiriman Dokumen Resmi: {$productTitle}";
             $mail->Body    = self::getEmailTemplate($toName, $productTitle, $invoiceNumber);
             $mail->AltBody = "Halo {$toName},\n\nTerima kasih telah membeli {$productTitle} (Invoice: {$invoiceNumber}).\nBerkas PDF berlisensi resmi atas nama Anda terlampir pada email ini.\n\nSalam hangat,\nRestia Moegiono Official Store";
 
