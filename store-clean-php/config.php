@@ -33,6 +33,7 @@ define('BIN_DIR', STORE_ROOT . '/bin');
 
 // URL Publik
 define('APP_URL', 'https://store.restiamoegiono.com');
+define('STORE_URL', 'https://store.restiamoegiono.com');
 define('CALLBACK_URL', APP_URL . '/payment/result');
 
 // Admin Auth

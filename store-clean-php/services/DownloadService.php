@@ -45,7 +45,8 @@ class DownloadService
             'prod'  => $productId,
             'token' => $token
         ]);
-        return STORE_URL . '/download.php?' . $query;
+        $baseUrl = defined('STORE_URL') ? STORE_URL : (defined('APP_URL') ? APP_URL : 'https://store.restiamoegiono.com');
+        return $baseUrl . '/download.php?' . $query;
     }
 
     /**
