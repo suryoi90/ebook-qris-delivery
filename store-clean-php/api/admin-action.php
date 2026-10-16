@@ -5,6 +5,8 @@ require_once __DIR__ . '/../services/FulfillmentService.php';
 require_once __DIR__ . '/../services/WatermarkService.php';
 require_once __DIR__ . '/../services/MailService.php';
 require_once __DIR__ . '/../services/BackupService.php';
+require_once __DIR__ . '/../services/LogService.php';
+require_once __DIR__ . '/../services/DownloadService.php';
 
 session_start();
 
@@ -967,6 +969,81 @@ try {
         echo json_encode([
             'success' => true,
             'message' => "Program kursus berhasil dihapus dari LMS."
+        ]);
+        exit;
+    }
+
+    // ==========================================
+    // MODUL SYSTEM HEALTH & ERROR LOGS
+    // ==========================================
+
+    // 15. Dapatkan Ringkasan Kesehatan Sistem Ekosistem
+    if ($action === 'get_system_health') {
+        $health = LogService::getSystemHealth();
+        echo json_encode([
+            'success' => true,
+            'health' => $health
+        ]);
+        exit;
+    }
+
+    // 16. Baca dan Parse Berkas Log Kesalahan Terstruktur
+    if ($action === 'get_error_logs') {
+        $target = trim($_GET['target'] ?? 'store');
+        $lines = min(500, max(50, (int)($_GET['lines'] ?? 200)));
+        $logData = LogService::readLog($target, $lines);
+        echo json_encode([
+            'success' => true,
+            'log' => $logData
+        ]);
+        exit;
+    }
+
+    // 17. Bersihkan Berkas Log
+    if ($action === 'clear_error_log') {
+        $target = trim($_POST['target'] ?? ($_GET['target'] ?? 'store'));
+        $ok = LogService::clearLog($target);
+        if (!$ok) throw new Exception("Gagal mengosongkan berkas log atau berkas tidak ditemukan.");
+
+        echo json_encode([
+            'success' => true,
+            'message' => "Berkas error log untuk target '{$target}' berhasil dikosongkan."
+        ]);
+        exit;
+    }
+
+    // 18. Unduh Raw File Log
+    if ($action === 'download_error_log') {
+        $target = trim($_GET['target'] ?? 'store');
+        $filePath = ($target === 'main') ? '/home/restiamo/public_html/error_log' : (__DIR__ . '/../error_log');
+        if (!file_exists($filePath)) {
+            throw new Exception("Berkas log tidak ditemukan di server.");
+        }
+
+        $filename = "{$target}-error_log-" . date('Ymd-His') . ".txt";
+        header('Content-Type: text/plain; charset=utf-8');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        header('Content-Length: ' . filesize($filePath));
+        readfile($filePath);
+        exit;
+    }
+
+    // 19. Bersihkan Cache PDF Smart Lifecycle
+    if ($action === 'cleanup_cache') {
+        $mode = trim($_POST['mode'] ?? ($_GET['mode'] ?? 'expired'));
+        if ($mode === 'all') {
+            $result = DownloadService::clearAllGeneratedCache();
+            $msg = "Seluruh cache berkas PDF ({$result['deleted_count']} file, {$result['freed_formatted']}) berhasil dikosongkan. Berkas master tetap aman dan berkas PDF ber-watermark akan digenerate otomatis on-the-fly saat pembeli meminta unduh.";
+        } else {
+            $days = max(1, (int)($_POST['days'] ?? ($_GET['days'] ?? 21)));
+            $result = DownloadService::cleanupExpiredCache($days);
+            $msg = "Pembersihan cache PDF (> {$days} hari) selesai: {$result['deleted_count']} berkas usang dibersihkan, membebaskan {$result['freed_formatted']} ruang penyimpanan.";
+        }
+
+        echo json_encode([
+            'success' => true,
+            'message' => $msg,
+            'result' => $result
         ]);
         exit;
     }

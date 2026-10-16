@@ -1,4 +1,15 @@
 <?php
+/**
+ * DownloadService.php — Layanan Pengunduhan Aman & Streaming Cerdas Berkelanjutan
+ * 
+ * Prinsip Kerja:
+ * 1. Token HMAC-SHA256: Validasi tanda tangan kriptografi tanpa payload rentan.
+ * 2. 8 KB Chunk Streaming: Memori RAM server konstan < 8 KB saat streaming file berukuran berapa pun.
+ * 3. Smart Cache Lifecycle: Berkas PDF ber-watermark disimpan sebagai cache sementara, dan dibersihkan berkala.
+ * 4. On-The-Fly Regeneration: Jika pembeli mengunduh berkas lama yang sudah dibersihkan, sistem men-generate ulang secara otomatis.
+ * 5. Anti-Abuse Rate Limiting: Mencegah penyedotan bandwidth berulang oleh bot/scrapers (maks 25x/24 jam per invoice).
+ */
+
 require_once __DIR__ . '/../config.php';
 require_once __DIR__ . '/../db.php';
 require_once __DIR__ . '/WatermarkService.php';
@@ -6,47 +17,44 @@ require_once __DIR__ . '/WatermarkService.php';
 class DownloadService
 {
     /**
-     * Menghasilkan token tanda tangan kriptografi (HMAC-SHA256) untuk tautan unduhan aman
+     * Membuat token tanda tangan HMAC-SHA256 yang aman
      */
     public static function generateDownloadToken(string $invoiceNumber, string $productId, string $customerEmail): string
     {
-        $payload = trim($invoiceNumber) . '|' . trim($productId) . '|' . strtolower(trim($customerEmail));
-        return substr(hash_hmac('sha256', $payload, DOWNLOAD_SALT), 0, 32);
+        $payload = strtolower(trim($invoiceNumber)) . '|' . strtolower(trim($productId)) . '|' . strtolower(trim($customerEmail));
+        return hash_hmac('sha256', $payload, DOWNLOAD_SALT);
     }
 
     /**
-     * Menghasilkan URL unduh resmi ber-token tanda tangan
-     */
-    public static function generateDownloadUrl(string $invoiceNumber, string $productId, string $customerEmail): string
-    {
-        $token = self::generateDownloadToken($invoiceNumber, $productId, $customerEmail);
-        return APP_URL . '/download.php?' . http_build_query([
-            'inv' => trim($invoiceNumber),
-            'prod' => trim($productId),
-            'token' => $token
-        ]);
-    }
-
-    /**
-     * Memvalidasi token tanda tangan unduhan
+     * Memverifikasi keabsahan token unduhan (constant-time comparison)
      */
     public static function verifyToken(string $invoiceNumber, string $productId, string $customerEmail, string $token): bool
     {
         $expected = self::generateDownloadToken($invoiceNumber, $productId, $customerEmail);
-        return hash_equals($expected, trim($token));
+        return hash_equals($expected, $token);
     }
 
     /**
-     * Melayani pengunduhan berkas PDF ber-watermark & password dengan streaming hemat RAM (8 KB buffer)
+     * Menghasilkan URL lengkap untuk pengunduhan e-book
+     */
+    public static function generateDownloadUrl(string $invoiceNumber, string $productId, string $customerEmail): string
+    {
+        $token = self::generateDownloadToken($invoiceNumber, $productId, $customerEmail);
+        $query = http_build_query([
+            'inv'   => $invoiceNumber,
+            'prod'  => $productId,
+            'token' => $token
+        ]);
+        return STORE_URL . '/download.php?' . $query;
+    }
+
+    /**
+     * Menangani proses pengunduhan aman dan streaming chunk 8 KB ke browser pembeli
      */
     public static function serveFile(string $invoiceNumber, string $productId, string $token): void
     {
-        $invoiceNumber = trim($invoiceNumber);
-        $productId = trim($productId);
-        $token = trim($token);
-
         if (empty($invoiceNumber) || empty($productId) || empty($token)) {
-            self::renderError("Parameter tautan unduhan tidak lengkap atau rusak.", 400);
+            self::renderError("Parameter unduhan tidak lengkap.", 400);
             return;
         }
 
@@ -74,7 +82,18 @@ class DownloadService
             return;
         }
 
-        // 4. Cari informasi produk (dari items_json atau tabel store_products)
+        // 4. Anti-Abuse Rate Limiting (Maks 25 unduhan per 24 jam per invoice)
+        if (!self::checkRateLimit($db, (int)$order['id'], $invoiceNumber, 25)) {
+            self::renderError("Batas frekuensi unduhan harian (25 kali/24 jam) untuk invoice ini telah tercapai demi kestabilan server. Silakan hubungi dukungan jika Anda membutuhkan berkas tambahan.", 429);
+            return;
+        }
+
+        // 5. Opportunistic Smart Cache Lifecycle (Pembersihan otomatis cache PDF > 21 hari dengan probabilitas 1:20)
+        if (random_int(1, 20) === 1) {
+            self::cleanupExpiredCache(21);
+        }
+
+        // 6. Cari informasi produk (dari items_json atau tabel store_products)
         $targetProduct = null;
         if (!empty($order['items_json'])) {
             $items = json_decode($order['items_json'], true);
@@ -99,12 +118,12 @@ class DownloadService
             return;
         }
 
-        // 5. Tentukan path file ter-watermark
+        // 7. Tentukan path file ter-watermark
         $cleanInv = preg_replace('/[^a-zA-Z0-9_\-]/', '', $invoiceNumber);
         $cleanMaster = preg_replace('/[^a-zA-Z0-9_\-\.]/', '', $targetProduct['master_file']);
         $filePath = GENERATED_EBOOKS_DIR . '/' . $cleanInv . '_' . $cleanMaster;
 
-        // Jika file belum di-generate (atau hilang), generate ulang on-the-fly secara otomatis
+        // On-the-fly regeneration: jika file fisik belum ada atau sudah dibersihkan oleh siklus cache, buat ulang otomatis
         if (!file_exists($filePath) || filesize($filePath) < 5000) {
             $pdfPassword = $order['pdf_password'] ?: '123456';
             $filePath = WatermarkService::stampPdf(
@@ -123,17 +142,17 @@ class DownloadService
             return;
         }
 
-        // 6. Nama berkas unduhan yang ramah dan formal untuk pembeli
+        // 8. Nama berkas unduhan yang ramah dan formal untuk pembeli
         $safeTitle = preg_replace('/[^a-zA-Z0-9_\-]/', '_', $targetProduct['title']);
         $safeTitle = trim(preg_replace('/_+/', '_', $safeTitle), '_');
         $downloadName = ($safeTitle ?: 'EBook_Resmi_Restia_Moegiono') . '.pdf';
 
-        // 7. Bersihkan output buffer sebelum streaming berkas
+        // 9. Bersihkan output buffer sebelum streaming berkas
         while (ob_get_level()) {
             ob_end_clean();
         }
 
-        // 8. Header HTTP Pengunduhan Aman & Kompatibel
+        // 10. Header HTTP Pengunduhan Aman & Kompatibel
         header('Content-Description: File Transfer');
         header('Content-Type: application/pdf');
         header('Content-Disposition: attachment; filename="' . $downloadName . '"');
@@ -144,7 +163,7 @@ class DownloadService
         header('Content-Length: ' . filesize($filePath));
         header('Accept-Ranges: bytes');
 
-        // 9. Streaming Berkas dalam Chunk 8 KB (Memori RAM server konstan < 8 KB)
+        // 11. Streaming Berkas dalam Chunk 8 KB (Memori RAM server konstan < 8 KB)
         $handle = fopen($filePath, 'rb');
         if ($handle === false) {
             self::renderError("Gagal membaca berkas penyimpanan server.", 500);
@@ -157,6 +176,124 @@ class DownloadService
         }
         fclose($handle);
         exit;
+    }
+
+    /**
+     * Pelacakan & Batasan Frekuensi Unduhan (Anti-Abuse Rate Limiting)
+     */
+    private static function checkRateLimit(PDO $db, int $orderId, string $invoiceNumber, int $maxDaily = 25): bool
+    {
+        try {
+            static $migrated = false;
+            if (!$migrated) {
+                $check = $db->query("SHOW COLUMNS FROM `store_orders` LIKE 'download_count'")->fetch();
+                if (!$check) {
+                    $db->exec("ALTER TABLE `store_orders` ADD COLUMN `download_count` INT UNSIGNED NOT NULL DEFAULT 0 AFTER `email_sent_at`");
+                    $db->exec("ALTER TABLE `store_orders` ADD COLUMN `last_download_at` DATETIME DEFAULT NULL AFTER `download_count`");
+                }
+                $migrated = true;
+            }
+
+            $stmt = $db->prepare("SELECT `download_count`, `last_download_at` FROM `store_orders` WHERE `id` = :id LIMIT 1");
+            $stmt->execute([':id' => $orderId]);
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($row) {
+                $lastTime = !empty($row['last_download_at']) ? strtotime($row['last_download_at']) : 0;
+                $count = (int)$row['download_count'];
+
+                // Reset counter jika sudah melewati 24 jam
+                if (time() - $lastTime > 86400) {
+                    $count = 0;
+                }
+
+                if ($count >= $maxDaily) {
+                    return false;
+                }
+
+                $upStmt = $db->prepare("UPDATE `store_orders` SET `download_count` = :cnt, `last_download_at` = NOW() WHERE `id` = :id");
+                $upStmt->execute([':cnt' => $count + 1, ':id' => $orderId]);
+            }
+        } catch (Throwable $e) {
+            // Abaikan kesalahan pencatatan rate-limit agar unduhan pembeli tetap berjalan
+        }
+        return true;
+    }
+
+    /**
+     * Membersihkan berkas PDF hasil watermark yang sudah melebihi N hari
+     * Berkas master tetap 100% aman dan PDF dapat digenerate ulang on-the-fly kapan saja.
+     */
+    public static function cleanupExpiredCache(int $days = 21): array
+    {
+        $genDir = GENERATED_EBOOKS_DIR;
+        if (!is_dir($genDir)) {
+            return ['deleted_count' => 0, 'freed_bytes' => 0, 'freed_formatted' => '0 B'];
+        }
+
+        $threshold = time() - ($days * 86400);
+        $files = glob($genDir . '/*.pdf') ?: [];
+        $deleted = 0;
+        $freed = 0;
+
+        foreach ($files as $f) {
+            if (is_file($f)) {
+                $mtime = filemtime($f);
+                if ($mtime !== false && $mtime < $threshold) {
+                    $sz = filesize($f);
+                    if (@unlink($f)) {
+                        $deleted++;
+                        $freed += $sz;
+                    }
+                }
+            }
+        }
+
+        return [
+            'deleted_count' => $deleted,
+            'freed_bytes' => $freed,
+            'freed_formatted' => self::formatBytes($freed),
+        ];
+    }
+
+    /**
+     * Mengosongkan seluruh berkas PDF di folder cache (Proteksi .htaccess tetap dipertahankan)
+     */
+    public static function clearAllGeneratedCache(): array
+    {
+        $genDir = GENERATED_EBOOKS_DIR;
+        if (!is_dir($genDir)) {
+            return ['deleted_count' => 0, 'freed_bytes' => 0, 'freed_formatted' => '0 B'];
+        }
+
+        $files = glob($genDir . '/*.pdf') ?: [];
+        $deleted = 0;
+        $freed = 0;
+
+        foreach ($files as $f) {
+            if (is_file($f)) {
+                $sz = filesize($f);
+                if (@unlink($f)) {
+                    $deleted++;
+                    $freed += $sz;
+                }
+            }
+        }
+
+        return [
+            'deleted_count' => $deleted,
+            'freed_bytes' => $freed,
+            'freed_formatted' => self::formatBytes($freed),
+        ];
+    }
+
+    private static function formatBytes(int $bytes): string
+    {
+        if ($bytes <= 0) return '0 B';
+        $units = ['B', 'KB', 'MB', 'GB'];
+        $base = log($bytes, 1024);
+        $floor = floor($base);
+        return round(pow(1024, $base - $floor), 2) . ' ' . ($units[$floor] ?? 'B');
     }
 
     /**

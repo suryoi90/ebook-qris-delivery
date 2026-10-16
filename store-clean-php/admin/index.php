@@ -957,6 +957,10 @@ $maskedEmail = substr(ADMIN_EMAIL, 0, 3) . '***@' . explode('@', ADMIN_EMAIL)[1]
         <span class="nav-chip-icon">💾</span>
         <span>Backup &amp; SQL</span>
       </button>
+      <button type="button" class="nav-chip" data-tab="system" onclick="switchTab('system', this)" style="background:#fef2f2; color:#991b1b; border-color:#fecaca; font-weight:800;">
+        <span class="nav-chip-icon">🩺</span>
+        <span>System Health &amp; Logs</span>
+      </button>
     </div>
 
     <!-- TAB 1: ORDERS -->
@@ -1646,6 +1650,135 @@ $maskedEmail = substr(ADMIN_EMAIL, 0, 3) . '***@' . explode('@', ADMIN_EMAIL)[1]
         <div style="margin-top:4px;">
           2. <b>Via Terminal SSH / MySQL CLI:</b> Jalankan perintah berikut:
           <pre style="background:#0f172a; color:#38bdf8; padding:8px 12px; border-radius:8px; margin-top:6px; font-size:12px; font-family:monospace; overflow-x:auto;">mysql -u restiamo_puser -p restiamo_portal &lt; store_sql_dump_YYYYMMDD_His.sql</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 12: SYSTEM HEALTH & ERROR LOGS -->
+    <div id="tabSystem" style="display:none; margin-bottom:32px;">
+      <!-- HEADER BANNER -->
+      <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:20px; padding:20px 24px; margin-bottom:24px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
+        <div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <h2 style="font-size:18px; font-weight:900; color:#0f172a;">Pemantau Kesehatan Sistem &amp; Log Aktivitas Real-Time</h2>
+            <span id="sysOverallBadge" style="background:#dcfce7; color:#166534; border:1px solid #86efac; padding:3px 10px; border-radius:999px; font-size:11px; font-weight:800;">● SISTEM NORMAL</span>
+          </div>
+          <p style="font-size:13px; color:#64748b; margin-top:2px;">Pantau status Store, Website Utama, LMS, Database, serta diagnosa berkas error log secara langsung tanpa perlu masuk cPanel.</p>
+        </div>
+        <div style="display:flex; gap:10px; align-items:center;">
+          <button type="button" class="btn-action-sm" onclick="refreshSystemData(true)">
+            <span id="sysRefreshIcon">🔄</span> Segarkan Status &amp; Log
+          </button>
+        </div>
+      </div>
+
+      <!-- 4 HEALTH MONITOR CARDS -->
+      <div class="kpi-grid" style="margin-bottom:24px;">
+        <!-- Card 1: Store -->
+        <div class="kpi-card" style="border-left: 4px solid #00AEFF;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+            <div class="kpi-label" style="margin:0;">Toko E-Book (Store)</div>
+            <span id="sysStoreBadge" class="status-badge status-paid" style="font-size:10px; padding:2px 8px;">Memeriksa...</span>
+          </div>
+          <div class="kpi-val" style="font-size:16px;" id="sysStoreStatus">store.restiamoegiono.com</div>
+          <div class="kpi-sub" id="sysStoreSub" style="margin-top:4px;">PHP <span id="sysPhpVer">-</span> &bull; Memori: <span id="sysMemUsage">-</span></div>
+        </div>
+
+        <!-- Card 2: Main Website -->
+        <div class="kpi-card" style="border-left: 4px solid #6366f1;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+            <div class="kpi-label" style="margin:0;">Website Utama</div>
+            <span id="sysMainBadge" class="status-badge" style="font-size:10px; padding:2px 8px;">Memeriksa...</span>
+          </div>
+          <div class="kpi-val" style="font-size:16px;" id="sysMainStatus">restiamoegiono.com</div>
+          <div class="kpi-sub" id="sysMainSub" style="margin-top:4px;">Respon: <span id="sysMainLatency">-</span></div>
+        </div>
+
+        <!-- Card 3: LMS -->
+        <div class="kpi-card" style="border-left: 4px solid #10b981;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+            <div class="kpi-label" style="margin:0;">Ruang Belajar LMS</div>
+            <span id="sysLmsBadge" class="status-badge" style="font-size:10px; padding:2px 8px;">Memeriksa...</span>
+          </div>
+          <div class="kpi-val" style="font-size:16px;" id="sysLmsStatus">restiamoegiono.com/course/</div>
+          <div class="kpi-sub" id="sysLmsSub" style="margin-top:4px;">Respon: <span id="sysLmsLatency">-</span></div>
+        </div>
+
+        <!-- Card 4: Database & Storage -->
+        <div class="kpi-card" style="border-left: 4px solid #f59e0b;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+            <div class="kpi-label" style="margin:0;">Basis Data &amp; Proteksi DRM</div>
+            <span id="sysDbBadge" class="status-badge status-paid" style="font-size:10px; padding:2px 8px;">MySQL Terhubung</span>
+          </div>
+          <div class="kpi-val" style="font-size:16px;" id="sysDbStatus"><span id="sysDbTables">0</span> Tabel MySQL</div>
+          <div class="kpi-sub" id="sysDbSub" style="margin-top:4px;">Cache PDF: <span id="sysGenCount">0</span> file (<span id="sysGenSize">0 B</span>) &bull; <span id="sysHtaccessStatus">.htaccess Terkunci</span></div>
+          <div style="margin-top:8px; display:flex; gap:6px; flex-wrap:wrap;">
+            <button type="button" onclick="triggerCacheCleanup('expired')" style="background:#f1f5f9; border:1px solid #cbd5e1; border-radius:6px; padding:3px 8px; font-size:11px; font-weight:700; color:#334155; cursor:pointer;" title="Hapus berkas PDF sementara yang berusia lebih dari 21 hari">
+              🧹 Bersihkan (>21 Hari)
+            </button>
+            <button type="button" onclick="triggerCacheCleanup('all')" style="background:#fee2e2; border:1px solid #fca5a5; border-radius:6px; padding:3px 8px; font-size:11px; font-weight:700; color:#991b1b; cursor:pointer;" title="Kosongkan seluruh cache PDF. Berkas master tetap aman dan di-generate otomatis saat diunduh">
+              ⚡ Kosongkan Semua
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- MAIN LOG VIEWER CONTAINER -->
+      <div class="table-card">
+        <!-- LOG TOOLBAR & SOURCE TABS -->
+        <div class="orders-table-header" style="border-bottom:1px solid #e2e8f0; padding-bottom:16px;">
+          <div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <h3 class="orders-title">Log Aktivitas &amp; Diagnostik Kesalahan</h3>
+              <span id="logCounterBadge" class="orders-counter-badge">0 Baris</span>
+            </div>
+            <p class="orders-subtitle">Inspeksi langsung berkas log server untuk menemukan bug, peringatan skrip, atau kendala konektivitas.</p>
+          </div>
+
+          <!-- SOURCE SELECTOR PILLS -->
+          <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+            <div class="orders-filter-pills">
+              <button type="button" class="filter-pill active" id="pillLogStore" onclick="switchLogSource('store')">
+                📁 Toko E-Book (<span id="storeLogSize">0 B</span>)
+              </button>
+              <button type="button" class="filter-pill" id="pillLogMain" onclick="switchLogSource('main')">
+                🌐 Website &amp; LMS (<span id="mainLogSize">0 B</span>)
+              </button>
+            </div>
+
+            <div style="display:flex; gap:6px;">
+              <button type="button" class="btn-refresh-data" onclick="downloadCurrentLog()" title="Unduh raw file log (.txt) ke komputer">
+                <span>📥</span> Unduh Log (.txt)
+              </button>
+              <button type="button" class="btn-refresh-data" onclick="clearCurrentLog()" style="color:#ef4444; border-color:#fca5a5;" title="Kosongkan berkas log">
+                <span>🧹</span> Bersihkan Log
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- FILTER & SEARCH BAR -->
+        <div style="padding:16px 20px; background:#f8fafc; border-bottom:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+          <div style="display:flex; align-items:center; gap:10px; flex:1; max-width:400px;">
+            <span style="font-size:14px;">🔍</span>
+            <input type="text" id="logSearchInput" placeholder="Cari pesan error, nama file, fungsi, line..." oninput="filterLogsList(this.value)" style="width:100%; border:1px solid #cbd5e1; border-radius:8px; padding:6px 12px; font-size:12px;">
+          </div>
+          <div style="display:flex; gap:6px; align-items:center;">
+            <span style="font-size:12px; font-weight:700; color:#64748b;">Filter Severity:</span>
+            <div class="orders-filter-pills">
+              <button type="button" class="filter-pill active" onclick="setLogSeverityFilter('all', this)">Semua (<span id="cntAll">0</span>)</button>
+              <button type="button" class="filter-pill" onclick="setLogSeverityFilter('FATAL', this)" style="color:#ef4444;">Fatal (<span id="cntFatal">0</span>)</button>
+              <button type="button" class="filter-pill" onclick="setLogSeverityFilter('WARNING', this)" style="color:#f59e0b;">Warning (<span id="cntWarn">0</span>)</button>
+              <button type="button" class="filter-pill" onclick="setLogSeverityFilter('NOTICE', this)" style="color:#3b82f6;">Notice (<span id="cntNotice">0</span>)</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- LOG LIST / TABLE -->
+        <div style="max-height:600px; overflow-y:auto;" id="logListWrapper">
+          <div id="logEntriesContainer" style="padding:16px 20px;">
+            <div style="text-align:center; padding:40px; color:#64748b;">Memuat data log aktivitas server...</div>
+          </div>
         </div>
       </div>
     </div>
@@ -2540,7 +2673,7 @@ $maskedEmail = substr(ADMIN_EMAIL, 0, 3) . '***@' . explode('@', ADMIN_EMAIL)[1]
         if (target) target.classList.add('active');
       }
 
-      const tabs = ['orders', 'products', 'course', 'coupons', 'briefcase', 'drm', 'email', 'doku', 'hero', 'lms', 'backup'];
+      const tabs = ['orders', 'products', 'course', 'coupons', 'briefcase', 'drm', 'email', 'doku', 'hero', 'lms', 'backup', 'system'];
       tabs.forEach(t => {
         const elId = 'tab' + t.charAt(0).toUpperCase() + t.slice(1);
         const tabEl = document.getElementById(elId);
@@ -2552,6 +2685,276 @@ $maskedEmail = substr(ADMIN_EMAIL, 0, 3) . '***@' . explode('@', ADMIN_EMAIL)[1]
       }
       if (tab === 'backup') {
         loadBackupList();
+      }
+      if (tab === 'system') {
+        loadSystemHealth();
+        loadErrorLogs(currentLogSource);
+      }
+    }
+
+    // ==========================================
+    // SYSTEM HEALTH & ERROR LOGS CONTROLLER
+    // ==========================================
+    let currentLogSource = 'store';
+    let currentSeverityFilter = 'all';
+    let cachedLogEntries = [];
+
+    async function loadSystemHealth() {
+      const overallBadge = document.getElementById('sysOverallBadge');
+      const refreshIcon = document.getElementById('sysRefreshIcon');
+      if (refreshIcon) refreshIcon.style.animation = 'spin 1s linear infinite';
+
+      try {
+        const res = await fetch('/api/admin-action.php?action=get_system_health');
+        const data = await res.json();
+        if (data.success && data.health) {
+          const h = data.health;
+          
+          // 1. Store
+          document.getElementById('sysPhpVer').innerText = h.server.php_version || '-';
+          document.getElementById('sysMemUsage').innerText = h.server.memory_current || '-';
+          const storeBadge = document.getElementById('sysStoreBadge');
+          if (storeBadge) {
+            storeBadge.className = 'status-badge status-paid';
+            storeBadge.innerText = 'ONLINE (' + (h.endpoints.store.latency_ms || 0) + 'ms)';
+          }
+
+          // 2. Main Website
+          const mainBadge = document.getElementById('sysMainBadge');
+          const mainLatency = document.getElementById('sysMainLatency');
+          if (h.endpoints.main_website.status === 'ONLINE') {
+            mainBadge.className = 'status-badge status-paid';
+            mainBadge.innerText = 'ONLINE (' + h.endpoints.main_website.http_code + ')';
+            mainLatency.innerText = h.endpoints.main_website.latency_ms + ' ms';
+          } else {
+            mainBadge.className = 'status-badge status-pending';
+            mainBadge.innerText = h.endpoints.main_website.status;
+            mainLatency.innerText = (h.endpoints.main_website.error || 'Perlu inspeksi');
+          }
+
+          // 3. LMS
+          const lmsBadge = document.getElementById('sysLmsBadge');
+          const lmsLatency = document.getElementById('sysLmsLatency');
+          if (h.endpoints.lms.status === 'ONLINE') {
+            lmsBadge.className = 'status-badge status-paid';
+            lmsBadge.innerText = 'ONLINE (' + h.endpoints.lms.http_code + ')';
+            lmsLatency.innerText = h.endpoints.lms.latency_ms + ' ms';
+          } else {
+            lmsBadge.className = 'status-badge status-pending';
+            lmsBadge.innerText = h.endpoints.lms.status;
+            lmsLatency.innerText = (h.endpoints.lms.error || 'Perlu inspeksi');
+          }
+
+          // 4. DB & Storage
+          document.getElementById('sysDbTables').innerText = h.database.tables_count || 0;
+          document.getElementById('sysGenCount').innerText = h.storage.generated_cache_count || 0;
+          document.getElementById('sysGenSize').innerText = h.storage.generated_cache_size || '0 B';
+          const htEl = document.getElementById('sysHtaccessStatus');
+          if (htEl) {
+            htEl.innerText = h.storage.htaccess_protected ? '✓ .htaccess Terkunci' : '⚠️ .htaccess Belum Ada';
+            htEl.style.color = h.storage.htaccess_protected ? '#059669' : '#dc2626';
+          }
+
+          // Update log sizes on pills
+          if (h.log_files && h.log_files.store) {
+            const el = document.getElementById('storeLogSize');
+            if (el) el.innerText = h.log_files.store.size_formatted;
+          }
+          if (h.log_files && h.log_files.main) {
+            const el = document.getElementById('mainLogSize');
+            if (el) el.innerText = h.log_files.main.size_formatted;
+          }
+
+          if (overallBadge) {
+            overallBadge.innerHTML = '● SISTEM NORMAL';
+            overallBadge.style.background = '#dcfce7';
+            overallBadge.style.color = '#166534';
+          }
+        }
+      } catch (e) {
+        console.error('Failed to load system health', e);
+        if (overallBadge) {
+          overallBadge.innerHTML = '⚠️ KENDALA KONEKSI';
+          overallBadge.style.background = '#fee2e2';
+          overallBadge.style.color = '#991b1b';
+        }
+      } finally {
+        if (refreshIcon) refreshIcon.style.animation = 'none';
+      }
+    }
+
+    async function loadErrorLogs(target = 'store') {
+      currentLogSource = target;
+      const container = document.getElementById('logEntriesContainer');
+      const counterBadge = document.getElementById('logCounterBadge');
+      if (container) container.innerHTML = '<div style="text-align:center; padding:30px; color:#64748b;">Mengambil dan mem-parsing berkas log...</div>';
+
+      try {
+        const res = await fetch(`/api/admin-action.php?action=get_error_logs&target=${encodeURIComponent(target)}&lines=250`);
+        const data = await res.json();
+        if (data.success && data.log) {
+          cachedLogEntries = data.log.entries || [];
+          const stats = data.log.stats || { total: 0, fatal: 0, warning: 0, notice: 0 };
+          
+          document.getElementById('cntAll').innerText = stats.total;
+          document.getElementById('cntFatal').innerText = stats.fatal;
+          document.getElementById('cntWarn').innerText = stats.warning;
+          document.getElementById('cntNotice').innerText = stats.notice;
+          if (counterBadge) counterBadge.innerText = `${stats.total} Baris Log`;
+
+          renderLogEntries();
+        } else {
+          if (container) container.innerHTML = `<div style="text-align:center; padding:30px; color:#ef4444;">Gagal memuat log: ${data.error || 'Terjadi kesalahan'}</div>`;
+        }
+      } catch (e) {
+        if (container) container.innerHTML = '<div style="text-align:center; padding:30px; color:#ef4444;">Terjadi kesalahan koneksi saat memuat log.</div>';
+      }
+    }
+
+    function switchLogSource(source) {
+      document.getElementById('pillLogStore').classList.toggle('active', source === 'store');
+      document.getElementById('pillLogMain').classList.toggle('active', source === 'main');
+      loadErrorLogs(source);
+    }
+
+    function setLogSeverityFilter(sev, btn) {
+      currentSeverityFilter = sev;
+      const pills = btn.parentElement.querySelectorAll('.filter-pill');
+      pills.forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      renderLogEntries();
+    }
+
+    function filterLogsList(query) {
+      renderLogEntries(query);
+    }
+
+    function renderLogEntries(searchQuery = '') {
+      const container = document.getElementById('logEntriesContainer');
+      if (!container) return;
+
+      const q = (searchQuery || document.getElementById('logSearchInput')?.value || '').toLowerCase().trim();
+
+      const filtered = cachedLogEntries.filter(entry => {
+        if (currentSeverityFilter !== 'all' && entry.severity !== currentSeverityFilter) {
+          return false;
+        }
+        if (q) {
+          const matchMsg = (entry.message || '').toLowerCase().includes(q);
+          const matchFile = (entry.file || '').toLowerCase().includes(q);
+          const matchTime = (entry.timestamp || '').toLowerCase().includes(q);
+          if (!matchMsg && !matchFile && !matchTime) return false;
+        }
+        return true;
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div style="text-align:center; padding:40px 20px; color:#64748b; background:#ffffff; border-radius:12px; border:1px dashed #cbd5e1;">
+            <div style="font-size:32px; margin-bottom:8px;">✨</div>
+            <div style="font-weight:800; font-size:15px; color:#0f172a;">Tidak Ada Pesan Kesalahan Ditemukan</div>
+            <div style="font-size:12px; margin-top:4px;">Berkas log bersih atau tidak ada entri yang cocok dengan kriteria filter saat ini.</div>
+          </div>
+        `;
+        return;
+      }
+
+      let html = '<div style="display:flex; flex-direction:column; gap:10px;">';
+      filtered.forEach((item, idx) => {
+        let badgeStyle = 'background:#f1f5f9; color:#475569; border:1px solid #cbd5e1;';
+        let borderColor = '#e2e8f0';
+        if (item.severity === 'FATAL') {
+          badgeStyle = 'background:#fef2f2; color:#991b1b; border:1px solid #fecaca;';
+          borderColor = '#fca5a5';
+        } else if (item.severity === 'WARNING') {
+          badgeStyle = 'background:#fffbeb; color:#92400e; border:1px solid #fde68a;';
+          borderColor = '#fcd34d';
+        } else if (item.severity === 'NOTICE') {
+          badgeStyle = 'background:#eff6ff; color:#1e40af; border:1px solid #bfdbfe;';
+          borderColor = '#93c5fd';
+        }
+
+        const stackTraceHtml = (item.stack_trace && item.stack_trace.length > 0)
+          ? `<div style="margin-top:8px; padding:8px 12px; background:#0f172a; color:#94a3b8; border-radius:6px; font-size:11px; font-family:monospace; white-space:pre-wrap; overflow-x:auto;">${item.stack_trace.map(s => escapeHtml(s)).join('\n')}</div>`
+          : '';
+
+        html += `
+          <div style="background:#ffffff; border:1px solid ${borderColor}; border-radius:10px; padding:12px 16px; box-shadow:0 1px 3px rgba(0,0,0,0.03);">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap; margin-bottom:6px;">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span style="font-size:10px; font-weight:800; padding:2px 8px; border-radius:6px; ${badgeStyle}">${item.severity}: ${escapeHtml(item.type)}</span>
+                <span style="font-size:11px; font-family:monospace; color:#64748b;">🕒 ${escapeHtml(item.timestamp)}</span>
+              </div>
+              ${item.file ? `<div style="font-size:11px; font-family:monospace; color:#0284c7; background:#f0f9ff; padding:2px 8px; border-radius:4px;">${escapeHtml(item.file.split('/').slice(-2).join('/'))}:${item.line || ''}</div>` : ''}
+            </div>
+            <div style="font-size:13px; font-weight:600; color:#0f172a; line-height:1.5; font-family:monospace; word-break:break-word;">
+              ${escapeHtml(item.message)}
+            </div>
+            ${stackTraceHtml}
+          </div>
+        `;
+      });
+      html += '</div>';
+
+      container.innerHTML = html;
+    }
+
+    function refreshSystemData(showToast = false) {
+      loadSystemHealth();
+      loadErrorLogs(currentLogSource);
+      if (showToast) {
+        alert('✓ Data kesehatan sistem & log terbaru berhasil dimuat ulang!');
+      }
+    }
+
+    function downloadCurrentLog() {
+      window.open(`/api/admin-action.php?action=download_error_log&target=${encodeURIComponent(currentLogSource)}`, '_blank');
+    }
+
+    async function clearCurrentLog() {
+      const srcName = (currentLogSource === 'main') ? 'Website Utama & LMS' : 'Toko E-Book';
+      if (!confirm(`Apakah Anda yakin ingin MENGOSONGKAN berkas error log untuk [${srcName}]? Tindakan ini tidak dapat dibatalkan.`)) {
+        return;
+      }
+      try {
+        const res = await fetch('/api/admin-action.php?action=clear_error_log', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: `target=${encodeURIComponent(currentLogSource)}`
+        });
+        const data = await res.json();
+        if (data.success) {
+          alert('✓ ' + data.message);
+          refreshSystemData(false);
+        } else {
+          alert('Gagal: ' + (data.error || 'Terjadi kesalahan'));
+        }
+      } catch (e) {
+        alert('Terjadi kesalahan jaringan.');
+      }
+    }
+
+    async function triggerCacheCleanup(mode = 'expired') {
+      const confirmMsg = (mode === 'all')
+        ? 'Apakah Anda yakin ingin MENGOSONGKAN SELURUH cache PDF di server? Berkas master tetap aman dan berkas PDF berlisensi akan digenerate ulang on-the-fly secara otomatis saat pembeli meminta unduh.'
+        : 'Bersihkan berkas cache PDF sementara yang berusia lebih dari 21 hari?';
+      if (!confirm(confirmMsg)) return;
+
+      try {
+        const res = await fetch('/api/admin-action.php?action=cleanup_cache', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: `mode=${encodeURIComponent(mode)}&days=21`
+        });
+        const data = await res.json();
+        if (data.success) {
+          alert('✓ ' + data.message);
+          loadSystemHealth();
+        } else {
+          alert('Gagal: ' + (data.error || 'Terjadi kesalahan'));
+        }
+      } catch (e) {
+        alert('Terjadi kesalahan jaringan.');
       }
     }
 
