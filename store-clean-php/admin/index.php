@@ -978,8 +978,8 @@ $maskedEmail = substr(ADMIN_EMAIL, 0, 3) . '***@' . explode('@', ADMIN_EMAIL)[1]
           </div>
           <div class="orders-filter-pills">
             <button type="button" class="filter-pill active" onclick="setOrdersFilter('all', this)">Semua</button>
-            <button type="button" class="filter-pill" onclick="setOrdersFilter('live', this)">💳 DOKU Live</button>
-            <button type="button" class="filter-pill" onclick="setOrdersFilter('test', this)">🧪 Uji Coba</button>
+            <button type="button" class="filter-pill" onclick="setOrdersFilter('live', this)">✅ Transaksi Asli</button>
+            <button type="button" class="filter-pill" onclick="setOrdersFilter('test', this)">🧪 Dummy / Simulasi</button>
             <button type="button" class="filter-pill" onclick="setOrdersFilter('paid', this)">Terbayar</button>
             <button type="button" class="filter-pill" onclick="setOrdersFilter('pending', this)">Menunggu</button>
           </div>
@@ -3198,7 +3198,14 @@ $maskedEmail = substr(ADMIN_EMAIL, 0, 3) . '***@' . explode('@', ADMIN_EMAIL)[1]
 
       const q = (currentSearchQuery || '').toLowerCase().trim();
       const isTestOrder = (o) => {
-        return o.is_test == 1 || (o.doku_payment_id && o.doku_payment_id.startsWith('TRX-')) || (o.invoice_number && (o.invoice_number.includes('RM-1791630573') || o.invoice_number.includes('RM-1791630610')));
+        return o.is_test == 1 || 
+               (o.doku_payment_id && o.doku_payment_id.startsWith('TRX-')) || 
+               (o.invoice_number && (
+                 o.invoice_number.includes('RM-1791630573') || 
+                 o.invoice_number.includes('RM-1791630610') ||
+                 o.invoice_number.includes('RM-1792089417') ||
+                 o.invoice_number.includes('RM-1792089125')
+               ));
       };
 
       const filtered = currentOrdersList.filter(o => {
@@ -3243,6 +3250,31 @@ $maskedEmail = substr(ADMIN_EMAIL, 0, 3) . '***@' . explode('@', ADMIN_EMAIL)[1]
         const isPaid = (o.payment_status === 'PAID' || o.payment_status === 'SUCCESS');
         const initials = (o.customer_name || 'U').split(' ').filter(x => x).map(x => x[0]).slice(0, 2).join('').toUpperCase();
 
+        // Resolve Cover Thumbnail
+        let thumbUrl = '';
+        let itemCount = 1;
+        if (o.items_json) {
+          try {
+            const items = JSON.parse(o.items_json);
+            if (Array.isArray(items) && items.length > 0) {
+              itemCount = items.length;
+              const firstMatch = cachedProducts.find(p => p.id === items[0].id);
+              if (firstMatch && firstMatch.cover_image) {
+                thumbUrl = firstMatch.cover_image;
+              }
+            }
+          } catch(e) {}
+        }
+        if (!thumbUrl && o.product_id) {
+          const match = cachedProducts.find(p => p.id === o.product_id);
+          if (match && match.cover_image) {
+            thumbUrl = match.cover_image;
+          }
+        }
+        if (!thumbUrl) {
+          thumbUrl = '/images/author-restia-formal.webp';
+        }
+
         let dateStr = '';
         if (o.created_at) {
           try {
@@ -3260,13 +3292,17 @@ $maskedEmail = substr(ADMIN_EMAIL, 0, 3) . '***@' . explode('@', ADMIN_EMAIL)[1]
           : '';
 
         const typeBadge = isTest
-          ? `<span class="tag-type-badge tag-test" title="Transaksi simulasi pengujian sistem">🧪 Uji Test</span>`
-          : `<span class="tag-type-badge tag-live" title="Pembayaran resmi DOKU Payment Gateway">💳 DOKU Live</span>`;
+          ? `<span class="tag-type-badge" style="background:#fef3c7; color:#92400e; border:1px solid #fcd34d; font-weight:800; cursor:pointer;" onclick="toggleOrderTestMode(${o.id}, 0)" title="Klik untuk mengubah menjadi Transaksi Asli">🧪 DUMMY / SIMULASI</span>`
+          : `<span class="tag-type-badge" style="background:#ecfdf5; color:#065f46; border:1px solid #6ee7b7; font-weight:900; cursor:pointer;" onclick="toggleOrderTestMode(${o.id}, 1)" title="Klik untuk mengubah menjadi Data Dummy">✅ TRANSAKSI ASLI</span>`;
+
+        const paymentChannelBadge = (!isTest && o.payment_channel)
+          ? `<div style="font-size:11px; color:#0369a1; font-weight:700; margin-top:2px;">🏦 ${o.payment_channel.replace(/_/g, ' ')}</div>`
+          : (isTest ? `<div style="font-size:10.5px; color:#b45309; font-weight:600; margin-top:2px;">Uji Coba Pengembang</div>` : '');
 
         const statusPill = isTest
-          ? `<span class="status-pill-modern test-paid">
-              <span class="pulse-indicator-dot purple"></span>
-              <span>TEST PAID</span>
+          ? `<span class="status-pill-modern test-paid" style="background:#fffbeb; color:#92400e; border:1px solid #fde68a;">
+              <span class="pulse-indicator-dot amber"></span>
+              <span>DUMMY (${o.payment_status})</span>
              </span>
              <div class="delivery-sub-status sent">
                ${o.email_sent ? '✓ Email Uji Coba Terkirim' : '⏳ Belum Terkirim'}
@@ -3296,7 +3332,7 @@ $maskedEmail = substr(ADMIN_EMAIL, 0, 3) . '***@' . explode('@', ADMIN_EMAIL)[1]
           </td>
           <td>
             <div class="customer-avatar-flex">
-              <div class="customer-avatar-circle" ${isTest ? 'style="background:linear-gradient(135deg, #8b5cf6, #6366f1);"' : ''}>${initials || 'U'}</div>
+              <div class="customer-avatar-circle" ${isTest ? 'style="background:linear-gradient(135deg, #f59e0b, #d97706);"' : ''}>${initials || 'U'}</div>
               <div class="customer-info-col">
                 <div class="customer-name-text">${o.customer_name}</div>
                 <a href="mailto:${o.customer_email}" class="customer-email-link" title="Kirim email ke ${o.customer_email}">
@@ -3306,9 +3342,15 @@ $maskedEmail = substr(ADMIN_EMAIL, 0, 3) . '***@' . explode('@', ADMIN_EMAIL)[1]
             </div>
           </td>
           <td>
-            <div class="product-title-cell">
-              <span class="product-badge-icon">📘</span>
-              <span class="product-title-text">${o.product_title}</span>
+            <div style="display:flex; align-items:center; gap:12px;">
+              <div style="position:relative; flex-shrink:0;">
+                <img src="${thumbUrl}" alt="Cover" style="width:38px; height:50px; object-fit:cover; border-radius:6px; box-shadow:0 2px 6px rgba(15,34,74,0.12); border:1px solid #e2e8f0; display:block;" onerror="this.src='/images/author-restia-formal.webp'">
+                ${itemCount > 1 ? `<span style="position:absolute; bottom:-4px; right:-4px; background:#0f172a; color:#fff; font-size:9px; font-weight:800; padding:1px 5px; border-radius:10px; border:1px solid #fff;">${itemCount}x</span>` : ''}
+              </div>
+              <div style="flex:1; min-width:0;">
+                <div class="product-title-text" style="font-weight:700; font-size:12.5px; color:#0f172a; line-height:1.35; margin-bottom:2px;">${o.product_title}</div>
+                ${paymentChannelBadge}
+              </div>
             </div>
           </td>
           <td>
@@ -3330,6 +3372,33 @@ $maskedEmail = substr(ADMIN_EMAIL, 0, 3) . '***@' . explode('@', ADMIN_EMAIL)[1]
         `;
         tbody.appendChild(tr);
       });
+    }
+
+    async function toggleOrderTestMode(id, newStatus) {
+      const modeLabel = (newStatus === 1) ? 'DUMMY / SIMULASI' : 'TRANSAKSI ASLI';
+      if (!confirm(`Ubah status transaksi ini menjadi [${modeLabel}]?`)) return;
+
+      try {
+        const formData = new FormData();
+        formData.append('action', 'toggle_order_test');
+        formData.append('id', id);
+        formData.append('is_test', newStatus);
+
+        const res = await fetch('/api/admin-action.php', {
+          method: 'POST',
+          headers: { 'X-Admin-Auth': ADMIN_KEY },
+          body: formData
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast('✓ ' + data.message);
+          await loadAdminData();
+        } else {
+          alert('Gagal: ' + (data.error || 'Terjadi kesalahan'));
+        }
+      } catch (e) {
+        alert('Terjadi kesalahan jaringan.');
+      }
     }
 
     function exportOrdersCsv() {

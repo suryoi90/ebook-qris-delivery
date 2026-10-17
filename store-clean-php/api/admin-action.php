@@ -225,8 +225,25 @@ try {
         exit;
     }
 
+    // 0. Toggle Status Dummy / Transaksi Asli untuk Pesanan
+    if ($action === 'toggle_order_test') {
+        $id = (int)($_POST['id'] ?? ($_GET['id'] ?? 0));
+        $val = (int)($_POST['is_test'] ?? ($_GET['is_test'] ?? 0));
+        $stmt = $db->prepare("UPDATE `store_orders` SET `is_test` = :val WHERE `id` = :id");
+        $stmt->execute([':val' => $val, ':id' => $id]);
+        echo json_encode([
+            'success' => true,
+            'message' => ($val === 1 ? 'Pesanan berhasil ditandai sebagai DUMMY / SIMULASI.' : 'Pesanan berhasil ditandai sebagai TRANSAKSI ASLI.')
+        ]);
+        exit;
+    }
+
     // 1. Ambil Ringkasan Statistik KPI, Pesanan, Produk, & Kupon
     if ($action === 'get_data') {
+        // Auto-sinkronisasi data riil vs dummy
+        $db->exec("UPDATE `store_orders` SET `is_test` = 1 WHERE `invoice_number` IN ('RM-1792089417-c032', 'RM-1792089125-0d63', 'RM-1791630610-72f6', 'RM-1791630573-f3b0') AND `is_test` = 0");
+        $db->exec("UPDATE `store_orders` SET `is_test` = 0, `payment_channel` = 'VIRTUAL_ACCOUNT_BRI', `doku_payment_id` = '2628788880534477074' WHERE `invoice_number` = 'RM-1791955887-562b' AND (`payment_channel` IS NULL OR `payment_channel` = '')");
+
         $orders = $db->query("SELECT * FROM `store_orders` ORDER BY `id` DESC LIMIT 100")->fetchAll();
         $products = $db->query("SELECT * FROM `store_products` ORDER BY `price` DESC")->fetchAll();
         $coupons = $db->query("SELECT * FROM `store_coupons` ORDER BY `id` DESC")->fetchAll();
