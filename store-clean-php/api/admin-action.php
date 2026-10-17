@@ -99,7 +99,7 @@ try {
     // ==========================================
 
     // A. Daftar Berkas Cadangan di Server
-    if ($action === 'get_backups') {
+    if ($action === 'get_backups' || $action === 'list_backups') {
         $backups = BackupService::listBackups();
         echo json_encode([
             'success' => true,

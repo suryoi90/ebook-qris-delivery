@@ -73,26 +73,37 @@ function evaluateCoupon($db, $couponCode, $amount, $productId = '') {
     ];
 }
 
-// 1. Endpoint Cek Kupon (GET / POST action=check_coupon)
-$action = trim($_GET['action'] ?? ($_POST['action'] ?? ''));
-if ($action === 'check_coupon') {
-    $code = trim($_GET['code'] ?? ($_POST['code'] ?? ''));
-    $amt = (float)($_GET['amount'] ?? ($_POST['amount'] ?? 0));
-    $prodId = trim($_GET['product_id'] ?? ($_POST['product_id'] ?? ''));
+// 1. Endpoint Cek Kupon (GET / POST action=check_coupon atau validate_coupon)
+$rawBody = file_get_contents('php://input');
+$rawJson = json_decode($rawBody, true) ?: [];
+
+$action = trim($_GET['action'] ?? ($_POST['action'] ?? ($rawJson['action'] ?? '')));
+if ($action === 'check_coupon' || $action === 'validate_coupon') {
+    $code = trim($_GET['code'] ?? ($_POST['code'] ?? ($rawJson['code'] ?? '')));
+    $amt = (float)($_GET['amount'] ?? ($_POST['amount'] ?? ($rawJson['amount'] ?? 0)));
+    $prodId = trim($_GET['product_id'] ?? ($_POST['product_id'] ?? ($rawJson['product_id'] ?? '')));
+    
     $eval = evaluateCoupon($db, $code, $amt, $prodId);
     if (!$eval['valid']) {
         http_response_code(400);
-        echo json_encode(['success' => false, 'error' => $eval['error'], 'message' => $eval['error']]);
+        echo json_encode([
+            'success' => false,
+            'valid' => false,
+            'error' => $eval['error'],
+            'message' => $eval['error']
+        ]);
         exit;
     }
     echo json_encode([
         'success' => true,
+        'valid' => true,
         'code' => $eval['code'],
         'applicable_to' => $eval['applicable_to'],
         'discount_type' => $eval['discount_type'],
         'discount_value' => $eval['discount_value'],
         'discount_amount' => $eval['discount_amount'],
         'final_amount' => $eval['final_amount'],
+        'max_discount' => (float)($eval['coupon']['max_discount'] ?? 0),
         'message' => $eval['message']
     ]);
     exit;
@@ -105,7 +116,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 // 2. Submit Pembuatan Pesanan & Sesi DOKU
-$input = json_decode(file_get_contents('php://input'), true) ?: $_POST;
+$input = !empty($rawJson) ? $rawJson : $_POST;
 
 $name = trim($input['name'] ?? '');
 $email = trim($input['email'] ?? '');
