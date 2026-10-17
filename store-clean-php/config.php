@@ -42,3 +42,19 @@ define('ADMIN_EMAIL', 'restia@restiamoegiono.com');
 
 // Token Rahasia Kriptografi Unduhan Terproteksi
 define('DOWNLOAD_SALT', 'RM_SECURE_DOWNLOAD_KEY_#Bismillah26_2026!');
+
+// Enforce Modern HTTP Security Headers & Unset Server Leakage
+@ini_set('expose_php', 'off');
+if (!headers_sent()) {
+    header('X-Content-Type-Options: nosniff');
+    header('Strict-Transport-Security: max-age=31536000; includeSubDomains; preload');
+    header('X-Frame-Options: SAMEORIGIN');
+    header('X-XSS-Protection: 1; mode=block');
+    header('Referrer-Policy: strict-origin-when-cross-origin');
+    header('Permissions-Policy: geolocation=(), camera=(), microphone=(), payment=(self "https://pay.doku.com" "https://sandbox.doku.com")');
+    if (function_exists('header_remove')) {
+        header_remove('X-Powered-By');
+        header_remove('X-Turbo-Charged-By');
+    }
+}
+
