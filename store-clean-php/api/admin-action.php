@@ -20,6 +20,24 @@ if ($authHeader !== ADMIN_PASSWORD) {
 
 $action = trim($_GET['action'] ?? ($_POST['action'] ?? ''));
 
+if (empty($action)) {
+    if (!empty($_SERVER['CONTENT_LENGTH']) && (int)$_SERVER['CONTENT_LENGTH'] > 0) {
+        $maxPost = ini_get('post_max_size');
+        $maxUpload = ini_get('upload_max_filesize');
+        http_response_code(413);
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode([
+            'success' => false,
+            'error' => "Ukuran berkas unggahan melebihi batas konfigurasi server (post_max_size: {$maxPost}, upload_max_filesize: {$maxUpload}). Harap perkecil ukuran berkas Anda."
+        ]);
+        exit;
+    }
+    http_response_code(400);
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode(['success' => false, 'error' => 'Parameter aksi tidak ditentukan.']);
+    exit;
+}
+
 try {
     $db = StoreDB::get();
 

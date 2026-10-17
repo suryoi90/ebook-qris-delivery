@@ -3079,7 +3079,7 @@ $maskedEmail = substr(ADMIN_EMAIL, 0, 3) . '***@' . explode('@', ADMIN_EMAIL)[1]
         formData.append('action', 'create_backup');
         formData.append('type', type.toUpperCase());
 
-        const res = await fetch('/api/admin-action.php', {
+        const res = await fetch('/api/admin-action.php?action=create_backup', {
           method: 'POST',
           headers: { 'X-Admin-Auth': ADMIN_KEY },
           body: formData
@@ -3122,7 +3122,7 @@ $maskedEmail = substr(ADMIN_EMAIL, 0, 3) . '***@' . explode('@', ADMIN_EMAIL)[1]
         formData.append('action', 'delete_backup');
         formData.append('file', filename);
 
-        const res = await fetch('/api/admin-action.php', {
+        const res = await fetch('/api/admin-action.php?action=delete_backup', {
           method: 'POST',
           headers: { 'X-Admin-Auth': ADMIN_KEY },
           body: formData
@@ -3384,7 +3384,7 @@ $maskedEmail = substr(ADMIN_EMAIL, 0, 3) . '***@' . explode('@', ADMIN_EMAIL)[1]
         formData.append('id', id);
         formData.append('is_test', newStatus);
 
-        const res = await fetch('/api/admin-action.php', {
+        const res = await fetch('/api/admin-action.php?action=toggle_order_test', {
           method: 'POST',
           headers: { 'X-Admin-Auth': ADMIN_KEY },
           body: formData
@@ -3411,7 +3411,7 @@ $maskedEmail = substr(ADMIN_EMAIL, 0, 3) . '***@' . explode('@', ADMIN_EMAIL)[1]
         const formData = new FormData();
         formData.append('action', 'fulfill_order');
         formData.append('invoice', inv);
-        const res = await fetch('/api/admin-action.php', {
+        const res = await fetch('/api/admin-action.php?action=fulfill_order', {
           method: 'POST',
           headers: { 'X-Admin-Auth': ADMIN_KEY },
           body: formData
@@ -3738,7 +3738,7 @@ $maskedEmail = substr(ADMIN_EMAIL, 0, 3) . '***@' . explode('@', ADMIN_EMAIL)[1]
       formData.append('action', 'save_coupon');
 
       try {
-        const res = await fetch('/api/admin-action.php', {
+        const res = await fetch('/api/admin-action.php?action=save_coupon', {
           method: 'POST',
           headers: { 'X-Admin-Auth': ADMIN_KEY },
           body: formData
@@ -3766,7 +3766,7 @@ $maskedEmail = substr(ADMIN_EMAIL, 0, 3) . '***@' . explode('@', ADMIN_EMAIL)[1]
       formData.append('id', id);
 
       try {
-        const res = await fetch('/api/admin-action.php', {
+        const res = await fetch('/api/admin-action.php?action=toggle_coupon', {
           method: 'POST',
           headers: { 'X-Admin-Auth': ADMIN_KEY },
           body: formData
@@ -3785,7 +3785,7 @@ $maskedEmail = substr(ADMIN_EMAIL, 0, 3) . '***@' . explode('@', ADMIN_EMAIL)[1]
       formData.append('id', id);
 
       try {
-        const res = await fetch('/api/admin-action.php', {
+        const res = await fetch('/api/admin-action.php?action=delete_coupon', {
           method: 'POST',
           headers: { 'X-Admin-Auth': ADMIN_KEY },
           body: formData
@@ -4004,7 +4004,7 @@ $maskedEmail = substr(ADMIN_EMAIL, 0, 3) . '***@' . explode('@', ADMIN_EMAIL)[1]
       formData.set('content_html', contentHtml);
 
       try {
-        const res = await fetch('/api/admin-action.php', {
+        const res = await fetch('/api/admin-action.php?action=save_lms_lesson', {
           method: 'POST',
           headers: { 'X-Admin-Auth': ADMIN_KEY },
           body: formData
@@ -4034,7 +4034,7 @@ $maskedEmail = substr(ADMIN_EMAIL, 0, 3) . '***@' . explode('@', ADMIN_EMAIL)[1]
       formData.append('id', id);
 
       try {
-        const res = await fetch('/api/admin-action.php', {
+        const res = await fetch('/api/admin-action.php?action=delete_lms_lesson', {
           method: 'POST',
           headers: { 'X-Admin-Auth': ADMIN_KEY },
           body: formData
@@ -4286,7 +4286,7 @@ $maskedEmail = substr(ADMIN_EMAIL, 0, 3) . '***@' . explode('@', ADMIN_EMAIL)[1]
         const formData = new FormData();
         formData.append('action', 'delete_product');
         formData.append('id', id);
-        const res = await fetch('/api/admin-action.php', {
+        const res = await fetch('/api/admin-action.php?action=delete_product', {
           method: 'POST',
           headers: { 'X-Admin-Auth': ADMIN_KEY },
           body: formData
@@ -4803,7 +4803,7 @@ $maskedEmail = substr(ADMIN_EMAIL, 0, 3) . '***@' . explode('@', ADMIN_EMAIL)[1]
       }
 
       try {
-        const res = await fetch('/api/admin-action.php', {
+        const res = await fetch('/api/admin-action.php?action=save_product', {
           method: 'POST',
           headers: { 'X-Admin-Auth': ADMIN_KEY },
           body: formData
@@ -4833,7 +4833,7 @@ $maskedEmail = substr(ADMIN_EMAIL, 0, 3) . '***@' . explode('@', ADMIN_EMAIL)[1]
         formData.append('action', 'fulfill_manual');
         formData.append('invoice', inv);
 
-        const res = await fetch('/api/admin-action.php', {
+        const res = await fetch('/api/admin-action.php?action=fulfill_manual', {
           method: 'POST',
           headers: { 'X-Admin-Auth': ADMIN_KEY },
           body: formData
@@ -4860,7 +4860,7 @@ $maskedEmail = substr(ADMIN_EMAIL, 0, 3) . '***@' . explode('@', ADMIN_EMAIL)[1]
       formData.append('org', document.getElementById('simOrg').value);
 
       try {
-        const res = await fetch('/api/admin-action.php', {
+        const res = await fetch('/api/admin-action.php?action=test_drm', {
           method: 'POST',
           headers: { 'X-Admin-Auth': ADMIN_KEY },
           body: formData
@@ -4895,7 +4895,7 @@ $maskedEmail = substr(ADMIN_EMAIL, 0, 3) . '***@' . explode('@', ADMIN_EMAIL)[1]
       formData.append('product_id', document.getElementById('testEmailProduct').value);
 
       try {
-        const res = await fetch('/api/admin-action.php', {
+        const res = await fetch('/api/admin-action.php?action=test_email', {
           method: 'POST',
           headers: { 'X-Admin-Auth': ADMIN_KEY },
           body: formData
@@ -5389,7 +5389,7 @@ $maskedEmail = substr(ADMIN_EMAIL, 0, 3) . '***@' . explode('@', ADMIN_EMAIL)[1]
       formData.set('description', descVal);
 
       try {
-        const res = await fetch('/api/admin-action.php', {
+        const res = await fetch('/api/admin-action.php?action=save_course', {
           method: 'POST',
           headers: { 'X-Admin-Auth': ADMIN_KEY },
           body: formData
@@ -5419,7 +5419,7 @@ $maskedEmail = substr(ADMIN_EMAIL, 0, 3) . '***@' . explode('@', ADMIN_EMAIL)[1]
       formData.append('id', id);
 
       try {
-        const res = await fetch('/api/admin-action.php', {
+        const res = await fetch('/api/admin-action.php?action=delete_course', {
           method: 'POST',
           headers: { 'X-Admin-Auth': ADMIN_KEY },
           body: formData
