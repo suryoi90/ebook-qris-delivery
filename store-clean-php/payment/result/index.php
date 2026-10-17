@@ -7,17 +7,25 @@ $invoice = htmlspecialchars($_GET['invoice'] ?? '', ENT_QUOTES, 'UTF-8');
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Konfirmasi Pembayaran &amp; Pengiriman — Restia Moegiono Store</title>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --font-title: clamp(1.35rem, 2.5vw + 0.3rem, 1.8rem);
+      --font-body: clamp(0.875rem, 0.3vw + 0.8rem, 1rem);
+    }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { text-size-adjust: 100%; -webkit-text-size-adjust: 100%; }
     body {
-      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       background-color: #F8FAFC; color: #0F224A; line-height: 1.6;
-      min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px;
+      min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: clamp(14px, 3.5vw, 28px);
+      -webkit-font-smoothing: antialiased; touch-action: manipulation; -webkit-tap-highlight-color: transparent;
     }
     .card {
       background: #ffffff; border: 1px solid #D6EAFF; border-radius: 28px;
-      padding: 44px 36px; max-width: 520px; width: 100%; text-align: center;
+      padding: clamp(28px, 4vw, 44px) clamp(20px, 3.5vw, 36px); max-width: 520px; width: 100%; text-align: center;
       box-shadow: 0 20px 50px rgba(15, 34, 74, 0.08);
     }
     .icon-box {
@@ -26,8 +34,8 @@ $invoice = htmlspecialchars($_GET['invoice'] ?? '', ENT_QUOTES, 'UTF-8');
     }
     .icon-success { background: #E8F3FF; color: #00AEFF; border: 2px solid #00AEFF; box-shadow: 0 0 16px rgba(0, 174, 255, 0.35); }
     .icon-pending { background: #FFF9E6; color: #F2B200; border: 2px solid #FDE68A; }
-    .title { font-size: 24px; font-weight: 900; margin-bottom: 8px; color: #0F224A; }
-    .sub { font-size: 14px; color: #64748b; margin-bottom: 24px; }
+    .title { font-size: var(--font-title); font-weight: 900; margin-bottom: 8px; color: #0F224A; text-wrap: balance; }
+    .sub { font-size: var(--font-body); color: #64748b; margin-bottom: 24px; }
     
     .detail-box {
       background: #E8F3FF; border: 1px solid #D6EAFF; border-radius: 16px;
@@ -48,7 +56,7 @@ $invoice = htmlspecialchars($_GET['invoice'] ?? '', ENT_QUOTES, 'UTF-8');
       display: inline-block; width: 100%; padding: 14px; border-radius: 12px;
       background: linear-gradient(135deg, #00AEFF, #0F224A); color: #ffffff; font-size: 14px; font-weight: 800;
       text-decoration: none; transition: transform 0.15s; margin-top: 10px;
-      box-shadow: 0 6px 18px rgba(0, 174, 255, 0.35);
+      box-shadow: 0 6px 18px rgba(0, 174, 255, 0.35); touch-action: manipulation; min-height: 46px;
     }
     .btn-home:hover { transform: translateY(-1px); box-shadow: 0 10px 24px rgba(0, 174, 255, 0.45); }
   </style>

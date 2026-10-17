@@ -101,7 +101,10 @@ function str_limit($value, $limit = 100, $end = '...') {
   <!-- Fonts Google -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <!-- Fonts Google with font-display: swap -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 
   <?php if ($product): ?>
   <!-- JSON-LD Structured Data Schema.org untuk Google Search Rich Snippets -->
@@ -166,25 +169,47 @@ function str_limit($value, $limit = 100, $end = '...') {
       --color-text-main: #0F224A;
       --color-text-muted: #64748b;
       --color-text-sub: #475569;
+
+      /* Fluid Typography (CSS clamp): Scales smoothly from 320px mobile to 4K TV */
+      --font-product-title: clamp(1.4rem, 2.6vw + 0.4rem, 2.25rem);
+      --font-section-title: clamp(1.2rem, 1.8vw + 0.3rem, 1.6rem);
+      --font-body: clamp(0.925rem, 0.35vw + 0.8rem, 1.05rem);
+      --font-small: clamp(0.775rem, 0.2vw + 0.725rem, 0.875rem);
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html {
+      text-size-adjust: 100%;
+      -webkit-text-size-adjust: 100%;
+      scroll-behavior: smooth;
+    }
     body {
-      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       background-color: var(--color-bg-page);
       color: var(--color-text-main);
       line-height: 1.6;
       -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      overflow-x: hidden;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      word-break: break-word;
+      overflow-wrap: break-word;
     }
     a { color: inherit; text-decoration: none; }
     button { font-family: inherit; }
 
-    .container { max-width: 1180px; margin: 0 auto; padding: 0 20px; }
+    .container {
+      width: 100%;
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 0 clamp(16px, 3.5vw, 32px);
+    }
 
     /* Sticky Navbar */
     .navbar {
       position: sticky; top: 0; z-index: 100;
-      background: rgba(255, 255, 255, 0.95);
+      background: rgba(255, 255, 255, 0.96);
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
       border-bottom: 1px solid var(--color-blue-border);
@@ -192,9 +217,9 @@ function str_limit($value, $limit = 100, $end = '...') {
     }
     .navbar-inner {
       display: flex; align-items: center; justify-content: space-between;
-      height: 72px; gap: 16px;
+      height: 72px; gap: 12px;
     }
-    .brand-group { display: flex; align-items: center; gap: 12px; }
+    .brand-group { display: flex; align-items: center; gap: 12px; min-width: 0; }
     .brand-logo {
       width: 42px; height: 42px; border-radius: 12px;
       background: linear-gradient(135deg, var(--color-cyan), var(--color-navy));
@@ -202,22 +227,22 @@ function str_limit($value, $limit = 100, $end = '...') {
       color: #ffffff; font-weight: 900; font-size: 18px;
       box-shadow: 0 4px 12px rgba(0, 174, 255, 0.35); flex-shrink: 0;
     }
-    .brand-title { font-size: 16px; font-weight: 800; color: var(--color-navy); line-height: 1.2; }
-    .brand-sub { font-size: 11px; color: var(--color-text-muted); font-weight: 600; }
+    .brand-title { font-size: 16px; font-weight: 800; color: var(--color-navy); line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .brand-sub { font-size: 11px; color: var(--color-text-muted); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-    .nav-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .nav-actions { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
     .badge-portal {
       font-size: 12px; font-weight: 700; color: var(--color-navy);
       background: var(--color-blue-soft); padding: 7px 14px; border-radius: 10px;
       border: 1px solid var(--color-blue-border); display: inline-flex; align-items: center; gap: 6px;
-      transition: all 0.15s ease;
+      transition: all 0.15s ease; white-space: nowrap;
     }
     .badge-portal:hover { background: var(--color-blue-border); }
 
     .badge-doku {
       font-size: 11px; font-weight: 800; color: #166534;
       background: #f0fdf4; padding: 6px 12px; border-radius: 20px;
-      border: 1px solid #bbf7d0; display: inline-flex; align-items: center; gap: 6px;
+      border: 1px solid #bbf7d0; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
     }
     .pulse-dot {
       width: 7px; height: 7px; border-radius: 50%;
@@ -225,6 +250,20 @@ function str_limit($value, $limit = 100, $end = '...') {
       animation: pulse-kf 1.5s infinite;
     }
     @keyframes pulse-kf { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.85); } }
+
+    @media (max-width: 768px) {
+      .navbar-inner { height: 64px; }
+      .brand-logo { width: 38px; height: 38px; font-size: 16px; border-radius: 10px; }
+      .brand-title { font-size: 14.5px; }
+      .brand-sub { display: none; }
+      .badge-portal { padding: 6px 10px; font-size: 11.5px; }
+      .hide-on-mobile { display: none !important; }
+      input, select, textarea { font-size: 16px !important; }
+    }
+
+    @media (min-width: 1920px) {
+      .container { max-width: 1380px; }
+    }
 
     /* Breadcrumbs */
     .breadcrumb-nav {
@@ -366,14 +405,12 @@ function str_limit($value, $limit = 100, $end = '...') {
     }
 
     .product-title-h1 {
-      font-size: 30px;
+      font-size: var(--font-product-title);
       font-weight: 900;
       color: var(--color-navy);
       line-height: 1.25;
       letter-spacing: -0.02em;
-    }
-    @media (max-width: 600px) {
-      .product-title-h1 { font-size: 24px; }
+      text-wrap: balance;
     }
 
     .product-subtitle-tag {
@@ -718,13 +755,13 @@ function str_limit($value, $limit = 100, $end = '...') {
         <a href="/cek-pesanan" class="badge-portal">
           🔍 Cek Pesanan
         </a>
-        <a href="https://restiamoegiono.com/course/" class="badge-portal" style="background:#f0fdf4; color:#166534; border-color:#bbf7d0;">
+        <a href="https://restiamoegiono.com/course/" class="badge-portal hide-on-mobile" style="background:#f0fdf4; color:#166534; border-color:#bbf7d0;">
           🎓 Ruang Belajar LMS
         </a>
-        <a href="https://restiamoegiono.com" target="_blank" class="badge-portal">
+        <a href="https://restiamoegiono.com" target="_blank" class="badge-portal hide-on-mobile">
           🌐 Portal Utama
         </a>
-        <span class="badge-doku">
+        <span class="badge-doku hide-on-mobile">
           <span class="pulse-dot"></span>
           DOKU Live
         </span>
@@ -780,7 +817,7 @@ function str_limit($value, $limit = 100, $end = '...') {
         <!-- Kolom Kiri: 3D Cover & Jaminan -->
         <div class="cover-showcase-box">
           <div class="cover-wrapper-3d">
-            <img src="<?= htmlspecialchars($coverUrl) ?>" alt="<?= htmlspecialchars($product['title']) ?>" class="cover-img-main">
+            <img src="<?= htmlspecialchars($coverUrl) ?>" alt="<?= htmlspecialchars($product['title']) ?>" class="cover-img-main" fetchpriority="high" decoding="async">
             <?php if (!empty($product['badge'])): ?>
               <span class="cover-badge-float"><?= htmlspecialchars($product['badge']) ?></span>
             <?php endif; ?>

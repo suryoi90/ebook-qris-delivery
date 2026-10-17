@@ -35,7 +35,7 @@ if (!empty($searchQuery)) {
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 
   <style>
     :root {
@@ -51,59 +51,98 @@ if (!empty($searchQuery)) {
       --color-bg-card: #FFFFFF;
       --color-text-main: #0F224A;
       --color-text-muted: #64748b;
+
+      /* Fluid Typography (CSS clamp): Scales smoothly from 320px mobile to 4K TV */
+      --font-track-title: clamp(1.5rem, 2.8vw + 0.5rem, 2.3rem);
+      --font-body: clamp(0.925rem, 0.35vw + 0.8rem, 1.05rem);
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html {
+      text-size-adjust: 100%;
+      -webkit-text-size-adjust: 100%;
+      scroll-behavior: smooth;
+    }
     body {
-      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       background-color: var(--color-bg-page);
       color: var(--color-text-main);
       line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      overflow-x: hidden;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      word-break: break-word;
+      overflow-wrap: break-word;
     }
     a { color: inherit; text-decoration: none; }
     button { font-family: inherit; }
 
-    .container { max-width: 1180px; margin: 0 auto; padding: 0 20px; }
+    .container {
+      width: 100%;
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 0 clamp(16px, 3.5vw, 32px);
+    }
 
     .navbar {
       position: sticky; top: 0; z-index: 100;
-      background: rgba(255, 255, 255, 0.95);
+      background: rgba(255, 255, 255, 0.96);
       backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
       border-bottom: 1px solid var(--color-blue-border);
+      box-shadow: 0 2px 10px rgba(15, 34, 74, 0.03);
     }
     .navbar-inner {
       display: flex; align-items: center; justify-content: space-between;
-      height: 72px; gap: 16px;
+      height: 72px; gap: 12px;
     }
-    .brand-group { display: flex; align-items: center; gap: 12px; }
+    .brand-group { display: flex; align-items: center; gap: 12px; min-width: 0; }
     .brand-logo {
       width: 42px; height: 42px; border-radius: 12px;
       background: linear-gradient(135deg, var(--color-cyan), var(--color-navy));
       display: flex; align-items: center; justify-content: center;
       color: #ffffff; font-weight: 900; font-size: 18px;
+      box-shadow: 0 4px 12px rgba(0, 174, 255, 0.35); flex-shrink: 0;
     }
-    .brand-title { font-size: 16px; font-weight: 800; color: var(--color-navy); line-height: 1.2; }
-    .brand-sub { font-size: 11px; color: var(--color-text-muted); font-weight: 600; }
+    .brand-title { font-size: 16px; font-weight: 800; color: var(--color-navy); line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .brand-sub { font-size: 11px; color: var(--color-text-muted); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-    .nav-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .nav-actions { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
     .badge-portal {
       font-size: 12px; font-weight: 700; color: var(--color-navy);
       background: var(--color-blue-soft); padding: 7px 14px; border-radius: 10px;
-      border: 1px solid var(--color-blue-border);
+      border: 1px solid var(--color-blue-border); display: inline-flex; align-items: center; gap: 6px;
+      transition: all 0.15s ease; white-space: nowrap;
+    }
+
+    @media (max-width: 768px) {
+      .navbar-inner { height: 64px; }
+      .brand-logo { width: 38px; height: 38px; font-size: 16px; border-radius: 10px; }
+      .brand-title { font-size: 14.5px; }
+      .brand-sub { display: none; }
+      .badge-portal { padding: 6px 10px; font-size: 11.5px; }
+      .hide-on-mobile { display: none !important; }
+      input, select, textarea { font-size: 16px !important; }
+    }
+
+    @media (min-width: 1920px) {
+      .container { max-width: 1380px; }
     }
 
     /* Page Content */
     .track-hero {
       text-align: center;
       max-width: 680px;
-      margin: 48px auto 32px;
+      margin: clamp(28px, 4vw, 48px) auto 28px;
     }
     .track-title {
-      font-size: 30px; font-weight: 900; color: var(--color-navy);
-      letter-spacing: -0.02em; margin-bottom: 8px;
+      font-size: var(--font-track-title); font-weight: 900; color: var(--color-navy);
+      letter-spacing: -0.02em; margin-bottom: 8px; text-wrap: balance;
     }
     .track-subtitle {
-      font-size: 15px; color: var(--color-text-muted); line-height: 1.6;
+      font-size: var(--font-body); color: var(--color-text-muted); line-height: 1.6;
     }
 
     .search-box-card {
@@ -262,10 +301,10 @@ if (!empty($searchQuery)) {
         <a href="/" class="badge-portal">
           📚 Katalog E-Book
         </a>
-        <a href="https://restiamoegiono.com/course/" class="badge-portal" style="background:#f0fdf4; color:#166534; border-color:#bbf7d0;">
+        <a href="https://restiamoegiono.com/course/" class="badge-portal hide-on-mobile" style="background:#f0fdf4; color:#166534; border-color:#bbf7d0;">
           🎓 Ruang Belajar LMS
         </a>
-        <a href="https://restiamoegiono.com" target="_blank" class="badge-portal">
+        <a href="https://restiamoegiono.com" target="_blank" class="badge-portal hide-on-mobile">
           🌐 Portal Utama
         </a>
       </div>
