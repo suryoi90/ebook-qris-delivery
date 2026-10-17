@@ -595,11 +595,34 @@ try {
             if (!move_uploaded_file($fTmp, $targetCoverPath)) {
                 throw new Exception("Gagal memindahkan berkas gambar sampul.");
             }
+
+            // Server-side fallback: Konversi JPG/PNG ke WebP jika GD tersedia
+            if (in_array($ext, ['jpg', 'jpeg', 'png']) && function_exists('imagewebp')) {
+                $srcImg = ($ext === 'png') ? @imagecreatefrompng($targetCoverPath) : @imagecreatefromjpeg($targetCoverPath);
+                if ($srcImg) {
+                    $webpCoverName = "cover-{$safeSlug}-" . time() . ".webp";
+                    $webpPath = $targetCoverDir . '/' . $webpCoverName;
+                    if (@imagewebp($srcImg, $webpPath, 85)) {
+                        @imagedestroy($srcImg);
+                        @unlink($targetCoverPath);
+                        $newCoverName = $webpCoverName;
+                    } else {
+                        @imagedestroy($srcImg);
+                    }
+                }
+            }
+
             $coverImage = '/images/' . $newCoverName;
         }
 
-        // 2. Handle Upload Berkas Master PDF Baru (.pdf) jika ada
+        // 2. Handle Upload Berkas Master PDF Baru (.pdf) jika ada (Maksimal 50 MB)
         if (isset($_FILES['master_pdf_file']) && $_FILES['master_pdf_file']['error'] === UPLOAD_ERR_OK) {
+            $pdfSize = $_FILES['master_pdf_file']['size'] ?? 0;
+            if ($pdfSize > 55 * 1024 * 1024) { // Batas 50 MB + toleransi
+                $sizeMb = round($pdfSize / (1024 * 1024), 2);
+                throw new Exception("Ukuran berkas PDF ({$sizeMb} MB) melebihi batas maksimal yang diizinkan (50 MB).");
+            }
+
             $fPdfTmp = $_FILES['master_pdf_file']['tmp_name'];
             $fPdfName = $_FILES['master_pdf_file']['name'];
             $extPdf = strtolower(pathinfo($fPdfName, PATHINFO_EXTENSION));

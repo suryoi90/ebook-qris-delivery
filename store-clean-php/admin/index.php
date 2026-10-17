@@ -1905,7 +1905,7 @@ $maskedEmail = substr(ADMIN_EMAIL, 0, 3) . '***@' . explode('@', ADMIN_EMAIL)[1]
               <!-- Tombol Ganti / Unggah PDF Baru -->
               <div>
                 <label class="btn-action-sm" style="display:flex; width:100%; justify-content:center; cursor:pointer; background:#ffffff; border:1px dashed #0284c7; color:#0284c7; padding:9px 12px; font-weight:700;">
-                  <span>📁 Unggah / Ganti Berkas PDF Baru</span>
+                  <span>📁 Unggah / Ganti Berkas PDF Master (Maks. 50 MB)</span>
                   <input type="file" id="uploadMasterPdf" name="master_pdf_file" accept=".pdf" style="display:none;" onchange="handlePdfSelected(this)">
                 </label>
                 <div id="newPdfSelectedInfo" style="display:none; font-size:11px; color:#059669; font-weight:700; margin-top:6px;"></div>
@@ -1940,7 +1940,7 @@ $maskedEmail = substr(ADMIN_EMAIL, 0, 3) . '***@' . explode('@', ADMIN_EMAIL)[1]
               <!-- Tombol Ganti / Unggah Gambar Baru -->
               <div>
                 <label class="btn-action-sm" style="display:flex; width:100%; justify-content:center; cursor:pointer; background:#ffffff; border:1px dashed #0284c7; color:#0284c7; padding:9px 12px; font-weight:700;">
-                  <span>🖼️ Unggah / Ganti Gambar Baru (WebP, JPG, PNG)</span>
+                  <span>🖼️ Unggah / Ganti Gambar Sampul (Kompresi WebP Otomatis)</span>
                   <input type="file" id="uploadCoverImage" name="cover_file" accept="image/webp,image/jpeg,image/png" style="display:none;" onchange="handleCoverSelected(this)">
                 </label>
                 <div id="newCoverSelectedInfo" style="display:none; font-size:11px; color:#059669; font-weight:700; margin-top:6px;"></div>
@@ -4422,27 +4422,97 @@ $maskedEmail = substr(ADMIN_EMAIL, 0, 3) . '***@' . explode('@', ADMIN_EMAIL)[1]
       document.getElementById('productEditorModal').style.display = 'none';
     }
 
-    // Live preview saat gambar baru dipilih
-    function handleCoverSelected(input) {
+    /**
+     * Kompresi otomatis berkas gambar (JPG, PNG, WebP) ke WebP ringan via HTML5 Canvas
+     */
+    async function compressImageToWebP(file, maxWidth = 1200, maxHeight = 1600, quality = 0.85) {
+      if (!file || !file.type.startsWith('image/')) return file;
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            let width = img.width;
+            let height = img.height;
+
+            if (width > maxWidth || height > maxHeight) {
+              const ratio = Math.min(maxWidth / width, maxHeight / height);
+              width = Math.round(width * ratio);
+              height = Math.round(height * ratio);
+            }
+
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
+            ctx.drawImage(img, 0, 0, width, height);
+
+            canvas.toBlob((blob) => {
+              if (!blob || blob.size >= file.size) {
+                resolve(file);
+                return;
+              }
+              const baseName = file.name.substring(0, file.name.lastIndexOf('.')) || 'cover';
+              const newFile = new File([blob], `${baseName}.webp`, {
+                type: 'image/webp',
+                lastModified: Date.now()
+              });
+              resolve(newFile);
+            }, 'image/webp', quality);
+          };
+          img.onerror = () => resolve(file);
+          img.src = e.target.result;
+        };
+        reader.onerror = () => resolve(file);
+        reader.readAsDataURL(file);
+      });
+    }
+
+    let compressedCoverFile = null;
+
+    // Live preview & kompresi instan saat gambar baru dipilih
+    async function handleCoverSelected(input) {
       if (input.files && input.files[0]) {
         const file = input.files[0];
+        const origSizeKb = (file.size / 1024).toFixed(1);
+
+        const infoEl = document.getElementById('newCoverSelectedInfo');
+        infoEl.style.display = 'block';
+        infoEl.style.color = '#0284c7';
+        infoEl.innerHTML = `⚡ Sedang mengompres gambar (${origSizeKb} KB)...`;
+
+        // Render preview instan
         const reader = new FileReader();
         reader.onload = function(e) {
           document.getElementById('coverPreviewImg').src = e.target.result;
         };
         reader.readAsDataURL(file);
 
-        const sizeFmt = (file.size / 1024).toFixed(1) + ' KB';
-        const infoEl = document.getElementById('newCoverSelectedInfo');
-        infoEl.style.display = 'block';
-        infoEl.innerText = `✓ Berkas baru dipilih: ${file.name} (${sizeFmt})`;
-        document.getElementById('coverStatusText').innerText = 'Gambar baru siap disimpan untuk menggantikan gambar saat ini';
-        document.getElementById('coverStatusText').style.color = '#059669';
-        document.getElementById('btnCancelCoverReplace').style.display = 'inline-block';
+        // Kompres otomatis ke WebP di browser
+        try {
+          const compressed = await compressImageToWebP(file, 1200, 1600, 0.85);
+          compressedCoverFile = compressed;
+          const compSizeKb = (compressed.size / 1024).toFixed(1);
+          const savings = Math.max(0, Math.round((1 - compressed.size / file.size) * 100));
+
+          infoEl.style.color = '#059669';
+          infoEl.innerHTML = `✓ <b>Terkompresi WebP:</b> ${origSizeKb} KB ➔ <b>${compSizeKb} KB</b> (hemat ${savings}%)`;
+          document.getElementById('coverStatusText').innerText = 'Gambar siap disimpan (format WebP ringan)';
+          document.getElementById('coverStatusText').style.color = '#059669';
+          document.getElementById('btnCancelCoverReplace').style.display = 'inline-block';
+        } catch (err) {
+          compressedCoverFile = file;
+          infoEl.style.color = '#64748b';
+          infoEl.innerText = `✓ Berkas dipilih: ${file.name} (${origSizeKb} KB)`;
+          document.getElementById('btnCancelCoverReplace').style.display = 'inline-block';
+        }
       }
     }
 
     function cancelCoverReplace() {
+      compressedCoverFile = null;
       document.getElementById('uploadCoverImage').value = '';
       const origCover = document.getElementById('editCoverImage').value || '/images/book-cover-450.webp';
       document.getElementById('coverPreviewImg').src = origCover;
@@ -4452,14 +4522,20 @@ $maskedEmail = substr(ADMIN_EMAIL, 0, 3) . '***@' . explode('@', ADMIN_EMAIL)[1]
       document.getElementById('btnCancelCoverReplace').style.display = 'none';
     }
 
-    // Info saat berkas PDF baru dipilih
+    // Info saat berkas PDF baru dipilih (Maksimal 50 MB)
     function handlePdfSelected(input) {
       if (input.files && input.files[0]) {
         const file = input.files[0];
-        const sizeMb = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
+        const sizeMb = (file.size / (1024 * 1024)).toFixed(2);
+        if (file.size > 52428800) { // 50 MB
+          alert(`Peringatan: Ukuran berkas PDF Anda (${sizeMb} MB) melebihi batas maksimal 50 MB.\nSilakan gunakan berkas PDF di bawah 50 MB.`);
+          input.value = '';
+          return;
+        }
         const infoEl = document.getElementById('newPdfSelectedInfo');
         infoEl.style.display = 'block';
-        infoEl.innerText = `✓ Berkas baru dipilih: ${file.name} (${sizeMb}) siap menggantikan master saat ini`;
+        infoEl.style.color = '#059669';
+        infoEl.innerText = `✓ Berkas PDF dipilih: ${file.name} (${sizeMb} MB) [Siap Disimpan]`;
         document.getElementById('btnCancelPdfReplace').style.display = 'inline-block';
       }
     }
@@ -4790,15 +4866,25 @@ $maskedEmail = substr(ADMIN_EMAIL, 0, 3) . '***@' . explode('@', ADMIN_EMAIL)[1]
       formData.append('target_audience', targetFinal);
       formData.append('benefits', benefitsFinal);
 
-      // Lampirkan berkas gambar baru jika dipilih
-      const coverInput = document.getElementById('uploadCoverImage');
-      if (coverInput && coverInput.files && coverInput.files[0]) {
-        formData.append('cover_file', coverInput.files[0]);
+      // Lampirkan berkas gambar baru jika dipilih (Gunakan versi WebP terkompresi)
+      if (compressedCoverFile) {
+        formData.append('cover_file', compressedCoverFile);
+      } else {
+        const coverInput = document.getElementById('uploadCoverImage');
+        if (coverInput && coverInput.files && coverInput.files[0]) {
+          formData.append('cover_file', coverInput.files[0]);
+        }
       }
 
-      // Lampirkan berkas PDF master baru jika dipilih
+      // Lampirkan berkas PDF master baru jika dipilih (Batas 50 MB)
       const pdfInput = document.getElementById('uploadMasterPdf');
       if (pdfInput && pdfInput.files && pdfInput.files[0]) {
+        if (pdfInput.files[0].size > 52428800) {
+          btn.disabled = false;
+          btn.innerText = '💾 Simpan Perubahan Produk';
+          alert('Ukuran berkas PDF melebihi batas maksimal 50 MB.');
+          return;
+        }
         formData.append('master_pdf_file', pdfInput.files[0]);
       }
 
@@ -4917,24 +5003,44 @@ $maskedEmail = substr(ADMIN_EMAIL, 0, 3) . '***@' . explode('@', ADMIN_EMAIL)[1]
     }
 
     // Live preview saat gambar Hero 3D baru dipilih
-    function handleHeroFileSelected(input) {
+    let compressedHeroFile = null;
+
+    async function handleHeroFileSelected(input) {
       if (input.files && input.files[0]) {
         const file = input.files[0];
+        const origSizeKb = (file.size / 1024).toFixed(1);
+
+        const infoEl = document.getElementById('newHeroSelectedInfo');
+        infoEl.style.display = 'block';
+        infoEl.style.color = '#0284c7';
+        infoEl.innerHTML = `⚡ Sedang mengompres mockup banner (${origSizeKb} KB)...`;
+
         const reader = new FileReader();
         reader.onload = function(e) {
           document.getElementById('heroPreviewImg').src = e.target.result;
         };
         reader.readAsDataURL(file);
 
-        const sizeFmt = (file.size / 1024).toFixed(1) + ' KB';
-        const infoEl = document.getElementById('newHeroSelectedInfo');
-        infoEl.style.display = 'block';
-        infoEl.innerText = `✓ Gambar baru dipilih: ${file.name} (${sizeFmt})`;
-        document.getElementById('btnCancelHeroReplace').style.display = 'block';
+        try {
+          const compressed = await compressImageToWebP(file, 1600, 1200, 0.85);
+          compressedHeroFile = compressed;
+          const compSizeKb = (compressed.size / 1024).toFixed(1);
+          const savings = Math.max(0, Math.round((1 - compressed.size / file.size) * 100));
+
+          infoEl.style.color = '#059669';
+          infoEl.innerHTML = `✓ <b>Terkompresi WebP:</b> ${origSizeKb} KB ➔ <b>${compSizeKb} KB</b> (hemat ${savings}%)`;
+          document.getElementById('btnCancelHeroReplace').style.display = 'block';
+        } catch (err) {
+          compressedHeroFile = file;
+          infoEl.style.color = '#64748b';
+          infoEl.innerText = `✓ Berkas dipilih: ${file.name} (${origSizeKb} KB)`;
+          document.getElementById('btnCancelHeroReplace').style.display = 'block';
+        }
       }
     }
 
     function cancelHeroReplace() {
+      compressedHeroFile = null;
       document.getElementById('uploadHeroImage').value = '';
       const origHero = (cachedSettings && cachedSettings.hero_image) ? cachedSettings.hero_image : '/images/hero-book-420.webp';
       document.getElementById('heroPreviewImg').src = origHero;
@@ -5127,6 +5233,11 @@ $maskedEmail = substr(ADMIN_EMAIL, 0, 3) . '***@' . explode('@', ADMIN_EMAIL)[1]
 
       // Pastikan hero_title terisi
       formData.set('hero_title', document.getElementById('heroTitleInput').value);
+
+      // Lampirkan berkas mockup hero terkompresi WebP jika ada
+      if (compressedHeroFile) {
+        formData.set('hero_image_file', compressedHeroFile);
+      }
 
       try {
         const res = await fetch('/api/admin-action.php?action=save_hero_settings', {
