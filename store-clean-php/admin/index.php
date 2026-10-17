@@ -768,10 +768,6 @@ $maskedEmail = substr(ADMIN_EMAIL, 0, 3) . '***@' . explode('@', ADMIN_EMAIL)[1]
           </button>
         </form>
 
-        <div style="margin-top:20px; padding-top:14px; border-top:1px dashed #cbd5e1; font-size:11px; color:#64748b; line-height:1.5;">
-          🔒 <strong>Double Protection Aktif:</strong> Keamanan panel mengadopsi standar autentikasi dua tahap seperti Portal CMS. Setelah kata sandi terverifikasi, kode OTP 6-digit akan dikirimkan ke email resmi administrator.
-        </div>
-
       <?php else: ?>
         <!-- TAHAP 2: VERIFIKASI KODE OTP EMAIL -->
         <div class="login-tag" style="background:#ecfdf5; border-color:#a7f3d0; color:#065f46;">✉️ DOUBLE PROTECTION &bull; TAHAP 2 DARI 2</div>
