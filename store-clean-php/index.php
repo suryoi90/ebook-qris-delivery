@@ -490,6 +490,16 @@ function renderSafeHtml($html) {
         padding: 9px 12px; font-size: 12px;
       }
     }
+    @media (max-width: 480px) {
+      .container { padding: 0 14px; }
+      .hero-tag { font-size: 11px; padding: 5px 12px; }
+      .hero-title { font-size: clamp(22px, 6vw, 26px); }
+      .hero-desc { font-size: 13.5px; line-height: 1.6; }
+      .btn-cta { width: 100%; padding: 14px 20px; font-size: 14px; }
+      .card-footer { flex-direction: column; align-items: flex-start; gap: 12px; }
+      .card-footer > div:last-child { width: 100%; display: flex; justify-content: space-between; gap: 8px; }
+      .btn-cart-add-card, .btn-buy { flex: 1; text-align: center; justify-content: center; }
+    }
   </style>
 </head>
 <body>

@@ -461,7 +461,11 @@
 
   /* Responsive Mobile */
   @media (max-width: 600px) {
-    .cart-drawer { max-width: 100%; }
+    .cart-drawer { width: 100%; max-width: 100%; }
+    .cart-header { padding: 16px 18px; }
+    .cart-body { padding: 16px 14px; }
+    .cart-footer { padding: 16px 14px; }
+    .cart-input { font-size: 16px !important; }
     .floating-cart-pill { bottom: 16px; right: 16px; padding: 8px 14px; }
     .cart-field-row { flex-direction: column; gap: 0; }
   }

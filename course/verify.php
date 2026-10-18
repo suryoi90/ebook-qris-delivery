@@ -128,6 +128,20 @@ if ($code) {
       border-top: 1px solid #00AEFF; padding: 24px 0; background: #0B1B3D;
       text-align: center; font-size: 12px; color: #94A3B8;
     }
+
+    /* Mobile Auto-Sizing */
+    @media (max-width: 600px) {
+      .container { padding: 24px 14px; }
+      .v-title { font-size: 20px; }
+      .v-sub { font-size: 12.5px; }
+      .search-box { padding: 16px 14px; border-radius: 16px; }
+      .form-flex { flex-direction: column; gap: 10px; }
+      .search-input { font-size: 16px !important; width: 100%; }
+      .btn-verify { width: 100%; padding: 13px; font-size: 14px; }
+      .result-card { padding: 20px 14px; border-radius: 18px; }
+      .holder-name { font-size: 20px; }
+      .detail-grid { grid-template-columns: 1fr; padding: 14px; gap: 12px; }
+    }
   </style>
 </head>
 <body>

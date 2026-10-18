@@ -108,6 +108,25 @@ $issueDate = date('d F Y');
     .sig-name { font-size: 14px; font-weight: 900; color: #0F224A; }
     .sig-role { font-size: 11px; color: #5A6E85; font-weight: 600; }
 
+    /* Mobile Auto-Sizing for Certificate */
+    @media (max-width: 768px) {
+      body { padding: 16px 10px; }
+      .action-bar { flex-wrap: wrap; width: 100%; justify-content: center; }
+      .btn-action { width: 100%; justify-content: center; }
+      .cert-frame {
+        aspect-ratio: auto;
+        padding: 24px 14px;
+        border-width: 5px;
+        outline-width: 2px;
+        border-radius: 10px;
+      }
+      .cert-header h1 { font-size: 20px; }
+      .cert-recipient-name { font-size: 20px; padding: 0 12px 4px; }
+      .cert-desc { font-size: 12px; }
+      .cert-footer { flex-direction: column; align-items: center; gap: 16px; padding: 0; }
+      .sig-line { width: 160px; }
+    }
+
     .cert-seal {
       width: 76px; height: 76px; border-radius: 50%;
       background: radial-gradient(circle, #F3AC10, #F2B200);

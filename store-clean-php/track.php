@@ -275,6 +275,18 @@ if (!empty($searchQuery)) {
     }
     .btn-action-resend:hover { background: #E2E8F0; }
 
+    /* Mobile Auto-Sizing */
+    @media (max-width: 600px) {
+      .container { padding: 0 14px; }
+      .search-box-card { padding: 16px 14px; margin-bottom: 24px; border-radius: 16px; }
+      .search-input-group { flex-direction: column; gap: 10px; }
+      .btn-search { width: 100%; padding: 13px; font-size: 14px; }
+      .order-card-item { padding: 16px 14px; border-radius: 16px; flex-direction: column; align-items: flex-start; gap: 14px; }
+      .order-cover-thumb { width: 64px; }
+      .order-meta-info { width: 100%; min-width: 0; }
+      .btn-action-download { width: 100%; justify-content: center; }
+    }
+
     /* Footer */
     footer {
       border-top: 2px solid var(--color-cyan); padding: 48px 0 28px; background: var(--color-navy-dark);

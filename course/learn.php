@@ -400,6 +400,71 @@ $quizQuestionsCount = (int)$db->query("SELECT COUNT(*) FROM lms_quiz_questions W
       background: linear-gradient(135deg, #00AEFF, #0F224A); color: #fff; font-weight: 800; font-size: 13px;
       text-decoration: none; box-shadow: 0 4px 14px rgba(0, 174, 255, 0.3); margin-top: 10px;
     }
+
+    /* Mobile & Tablet Curriculum Drawer & Auto-Sizing */
+    @media (max-width: 1024px) {
+      .classroom-layout { grid-template-columns: 1fr; }
+      .classroom-sidebar {
+        position: fixed;
+        top: 0; right: 0; bottom: 0;
+        width: 100%; max-width: 360px;
+        z-index: 10001;
+        box-shadow: -10px 0 30px rgba(15, 34, 74, 0.25);
+        transform: translateX(100%);
+        transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        height: 100vh;
+      }
+      .classroom-sidebar.mobile-open {
+        transform: translateX(0);
+      }
+      .sidebar-backdrop {
+        position: fixed; inset: 0; background: rgba(15, 34, 74, 0.6);
+        z-index: 10000; opacity: 0; pointer-events: none;
+        transition: opacity 0.3s ease;
+      }
+      .sidebar-backdrop.active {
+        opacity: 1; pointer-events: auto;
+      }
+    }
+    .btn-mobile-curriculum {
+      padding: 9px 14px; border-radius: 12px; font-size: 12.5px; font-weight: 800;
+      background: #ffffff; border: 1px solid var(--border-color); color: var(--navy);
+      cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+      transition: all 0.2s; box-shadow: var(--shadow-sm);
+    }
+    .btn-mobile-curriculum:hover {
+      background: var(--soft-blue); border-color: var(--primary); color: var(--primary);
+    }
+    .btn-close-sidebar {
+      background: rgba(15, 34, 74, 0.08); border: none; color: var(--navy);
+      width: 32px; height: 32px; border-radius: 50%; font-size: 20px; line-height: 1;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+    }
+    @media (min-width: 1025px) {
+      .hide-on-desktop { display: none !important; }
+      .sidebar-backdrop { display: none !important; }
+    }
+    @media (max-width: 768px) {
+      .btn-theater-mode { display: none !important; }
+      .hide-on-mobile { display: none !important; }
+    }
+    @media (max-width: 640px) {
+      .classroom-header { padding: 10px 14px; }
+      .progress-box { display: none; }
+      .header-left { gap: 8px; }
+      .back-btn { padding: 5px 10px; font-size: 11.5px; }
+      .stage-section { padding: 14px 12px 40px; }
+      .lesson-main-title { font-size: 18px; line-height: 1.35; }
+      .stage-actions-right { gap: 6px; }
+      .btn-complete-toggle { padding: 8px 12px; font-size: 11.5px; }
+      .content-tabs-nav { gap: 4px; padding-bottom: 6px; }
+      .tab-btn { padding: 8px 12px; font-size: 12px; }
+      .notes-card { padding: 18px 14px; border-radius: 16px; }
+      .notepad-textarea { font-size: 16px !important; }
+      .quiz-question-box { padding: 14px 16px; border-radius: 12px; }
+      .discussion-card { padding: 14px; }
+      .vault-table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    }
   </style>
 </head>
 <body>
@@ -503,6 +568,11 @@ $quizQuestionsCount = (int)$db->query("SELECT COUNT(*) FROM lms_quiz_questions W
         </div>
 
         <div class="stage-actions-right">
+          <button type="button" class="btn-mobile-curriculum hide-on-desktop" onclick="toggleMobileCurriculum()" title="Buka Daftar Materi">
+            <span>📚</span>
+            <span>Daftar Bab (<?= $totalLessons ?>)</span>
+          </button>
+
           <button type="button" class="btn-theater-mode" onclick="toggleTheaterMode()" title="Sembunyikan sidebar untuk layar lebar">
             <span id="theaterIcon">🖥️</span>
             <span id="theaterText">Mode Fokus</span>
@@ -718,11 +788,17 @@ $quizQuestionsCount = (int)$db->query("SELECT COUNT(*) FROM lms_quiz_questions W
 
     </main>
 
+    <!-- SIDEBAR BACKDROP FOR MOBILE -->
+    <div id="sidebarBackdrop" class="sidebar-backdrop" onclick="toggleMobileCurriculum()"></div>
+
     <!-- SIDEBAR DRAWER (SYLLABUS) -->
-    <aside class="classroom-sidebar">
+    <aside id="classroomSidebar" class="classroom-sidebar">
       <div class="sidebar-head">
-        <div class="sidebar-title">Kurikulum Pembelajaran</div>
-        <div class="sidebar-badge"><?= $completedCount ?>/<?= $totalLessons ?> Bab</div>
+        <div>
+          <div class="sidebar-title">Kurikulum Pembelajaran</div>
+          <div class="sidebar-badge" style="margin-top:2px;"><?= $completedCount ?>/<?= $totalLessons ?> Bab Selesai</div>
+        </div>
+        <button type="button" class="btn-close-sidebar hide-on-desktop" onclick="toggleMobileCurriculum()" title="Tutup Silabus" aria-label="Tutup">&times;</button>
       </div>
 
       <?php foreach ($modules as $m): ?>
@@ -1083,6 +1159,24 @@ $quizQuestionsCount = (int)$db->query("SELECT COUNT(*) FROM lms_quiz_questions W
       if (!confirm('Apakah Anda ingin keluar dari ruang belajar?')) return;
       await fetch('<?= LMS_BASE_URL ?>/api.php?action=logout');
       window.location.href = '<?= LMS_BASE_URL ?>';
+    }
+
+    function toggleMobileCurriculum() {
+      const sb = document.getElementById('classroomSidebar');
+      const bd = document.getElementById('sidebarBackdrop');
+      if (sb) sb.classList.toggle('mobile-open');
+      if (bd) bd.classList.toggle('active');
+    }
+
+    function toggleTheaterMode() {
+      const grid = document.getElementById('classroomLayoutGrid');
+      if (!grid) return;
+      grid.classList.toggle('theater-active');
+      const isTheater = grid.classList.contains('theater-active');
+      const icon = document.getElementById('theaterIcon');
+      const text = document.getElementById('theaterText');
+      if (icon) icon.innerText = isTheater ? '🗔' : '🖥️';
+      if (text) text.innerText = isTheater ? 'Buka Sidebar' : 'Mode Fokus';
     }
   </script>
 

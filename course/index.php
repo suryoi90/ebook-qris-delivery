@@ -155,6 +155,34 @@ $canonicalUrl = $course ? 'https://restiamoegiono.com/course/' . urlencode($cour
     .nav-actions {
       display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
     }
+    @media (max-width: 768px) {
+      .hide-on-mobile { display: none !important; }
+      .brand-sub { display: none; }
+      .brand-title { font-size: 14.5px; }
+      .container { padding: 0 16px; }
+      .navbar { padding: 10px 0; }
+    }
+    @media (max-width: 640px) {
+      .hero-section { padding: 28px 0 20px; }
+      .hero-title { font-size: clamp(22px, 5.5vw, 28px); }
+      .hero-desc { font-size: 14px; margin-bottom: 24px; }
+      .metrics-bar { gap: 10px; padding: 10px 14px; border-radius: 14px; width: 100%; justify-content: flex-start; }
+      .metric-item { font-size: 11.5px; }
+      .featured-box { padding: 18px 14px; border-radius: 20px; gap: 20px; }
+      .featured-title { font-size: 20px; }
+      .highlights-grid { grid-template-columns: 1fr; }
+      .pricing-panel { padding: 20px 16px; border-radius: 16px; }
+      .new-price { font-size: 28px; }
+      .btn-buy-doku { padding: 14px 18px; font-size: 14px; }
+      .btn-preview-direct { padding: 12px 16px; font-size: 13px; }
+      .section-title { font-size: 20px; }
+      .module-header { padding: 12px 14px; }
+      .module-title { font-size: 13.5px; }
+      .lesson-item { padding: 12px 14px; flex-wrap: wrap; gap: 8px; }
+      .lesson-left { min-width: 0; flex: 1; }
+      .lesson-name { font-size: 12.5px; }
+      .instructor-card { padding: 20px 16px; border-radius: 18px; }
+    }
     .badge-portal {
       display: inline-flex; align-items: center; gap: 6px;
       padding: 7px 14px; border-radius: 20px;
@@ -448,14 +476,14 @@ $canonicalUrl = $course ? 'https://restiamoegiono.com/course/' . urlencode($cour
       </a>
 
       <div class="nav-actions">
-        <a href="<?= MAIN_URL ?>" target="_blank" class="badge-portal">
+        <a href="<?= MAIN_URL ?>" target="_blank" class="badge-portal hide-on-mobile">
           🌐 Portal Utama
         </a>
-        <a href="<?= STORE_URL ?>" class="badge-portal">
+        <a href="<?= STORE_URL ?>" class="badge-portal hide-on-mobile">
           📚 E-Book Store
         </a>
         <a href="<?= LMS_BASE_URL ?>" class="badge-portal active">
-          🎓 Kelas &amp; Kurikulum
+          🎓 Kelas
         </a>
 
         <?php if ($student): ?>

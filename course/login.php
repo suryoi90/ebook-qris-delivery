@@ -114,6 +114,25 @@ if ($student) {
     }
     .bottom-back-link a { color: var(--primary); text-decoration: none; font-weight: 700; }
     .bottom-back-link a:hover { text-decoration: underline; }
+
+    /* Mobile Auto-Sizing */
+    @media (max-width: 480px) {
+      body { padding: 16px 12px; }
+      .login-container {
+        padding: 28px 18px;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(15, 34, 74, 0.06);
+      }
+      .brand-logo-img { height: 38px; margin-bottom: 8px; }
+      .login-title { font-size: 20px; }
+      .login-sub { font-size: 12.5px; }
+      .form-input {
+        font-size: 16px !important; /* Prevents iOS Safari auto-zoom */
+        padding: 12px 14px;
+      }
+      .btn-submit { padding: 13px 18px; font-size: 14px; }
+      .btn-demo-mode { padding: 12px 16px; font-size: 12.5px; }
+    }
   </style>
 </head>
 <body>

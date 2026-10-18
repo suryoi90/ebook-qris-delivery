@@ -291,6 +291,18 @@ function str_limit($value, $limit = 100, $end = '...') {
     }
     @media (max-width: 900px) {
       .product-hero-card { grid-template-columns: 1fr; padding: 24px 20px; gap: 28px; }
+      .cover-showcase-box { position: static; }
+      .cta-button-group { flex-direction: column; }
+      .btn-buy-primary, .btn-syllabus-secondary { width: 100%; min-width: 0; }
+    }
+    @media (max-width: 480px) {
+      .product-hero-card { padding: 18px 14px; border-radius: 18px; gap: 20px; }
+      .cover-wrapper-3d { max-width: 250px; }
+      .product-title-h1 { font-size: clamp(20px, 5.5vw, 24px); }
+      .price-main-val { font-size: 26px; }
+      .price-action-box { padding: 16px 14px; border-radius: 14px; }
+      .details-tab-container { padding: 16px 12px; border-radius: 16px; }
+      .tab-pill-btn { padding: 8px 12px; font-size: 12px; }
     }
 
     /* Left: Cover Showcase */
@@ -750,9 +762,9 @@ function str_limit($value, $limit = 100, $end = '...') {
           <span class="nav-cart-counter" style="display:none; background:#ef4444; color:#ffffff; font-size:10px; font-weight:900; padding:1px 6px; border-radius:10px; line-height:1.2;">0</span>
         </button>
         <a href="/" class="badge-portal">
-          📚 Semua E-Book
+          📚 Katalog
         </a>
-        <a href="/cek-pesanan" class="badge-portal">
+        <a href="/cek-pesanan" class="badge-portal hide-on-mobile">
           🔍 Cek Pesanan
         </a>
         <a href="https://restiamoegiono.com/course/" class="badge-portal hide-on-mobile" style="background:#f0fdf4; color:#166534; border-color:#bbf7d0;">
