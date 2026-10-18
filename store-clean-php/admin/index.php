@@ -728,6 +728,227 @@ $maskedEmail = substr(ADMIN_EMAIL, 0, 3) . '***@' . explode('@', ADMIN_EMAIL)[1]
       background: linear-gradient(135deg, var(--color-cyan-electric), var(--color-navy-dark));
       transform: translateY(-1px); box-shadow: 0 6px 18px rgba(0, 174, 255, 0.5);
     }
+
+    /* =======================================================
+       UNIVERSAL MOBILE AUTO-SIZING & RESPONSIVENESS (SAMSUNG & ALL PHONES)
+       ======================================================= */
+    html, body {
+      overflow-x: hidden;
+      width: 100%;
+      max-width: 100%;
+    }
+
+    .table-responsive {
+      width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      position: relative;
+    }
+    .table-responsive::-webkit-scrollbar {
+      height: 6px;
+    }
+    .table-responsive::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 10px;
+    }
+
+    @media (max-width: 768px) {
+      input, select, textarea {
+        font-size: 16px !important; /* Prevents auto-zoom on mobile Chrome / Samsung Internet */
+      }
+
+      .container {
+        padding: 0 12px;
+        width: 100%;
+        max-width: 100%;
+      }
+
+      /* Dashboard Header */
+      .dash-header {
+        padding: 12px 0;
+        margin-bottom: 16px;
+      }
+      .dash-header-inner {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+      }
+      .dash-brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .dash-brand div div:last-child {
+        display: none; /* Hide lengthy subtitle on mobile */
+      }
+      .dash-header-inner > div:last-child {
+        display: flex;
+        gap: 8px;
+        width: 100%;
+      }
+      .dash-header-inner > div:last-child .btn-action-sm,
+      .dash-header-inner > div:last-child .btn-logout {
+        flex: 1;
+        text-align: center;
+        justify-content: center;
+        padding: 9px 12px;
+      }
+
+      /* KPI Cards: 2 compact columns on mobile phones */
+      .kpi-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-bottom: 14px;
+      }
+      .kpi-card {
+        padding: 10px 12px;
+        border-radius: 12px;
+      }
+      .kpi-val {
+        font-size: 16px;
+      }
+      .kpi-label {
+        font-size: 9.5px;
+      }
+      .kpi-sub {
+        font-size: 9px;
+      }
+
+      /* Horizontal Scrollable Nav Chips (Native App Feel on Samsung/Android) */
+      .nav-chips-bar {
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        padding-bottom: 6px;
+        margin-bottom: 14px;
+        gap: 6px;
+      }
+      .nav-chips-bar::-webkit-scrollbar {
+        display: none;
+      }
+      .nav-chip {
+        flex-shrink: 0;
+        white-space: nowrap;
+        padding: 7px 12px;
+        font-size: 11.5px;
+        border-radius: 8px;
+      }
+
+      /* Orders Toolbar */
+      .orders-table-header {
+        padding: 12px 14px;
+      }
+      .orders-title {
+        font-size: 15px;
+      }
+      .orders-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+      }
+      .orders-search-box {
+        min-width: 100%;
+        max-width: 100%;
+      }
+      .orders-search-input {
+        padding: 10px 36px;
+      }
+      .orders-filter-pills {
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        padding: 3px;
+        width: 100%;
+      }
+      .orders-filter-pills::-webkit-scrollbar {
+        display: none;
+      }
+      .filter-pill {
+        flex-shrink: 0;
+        white-space: nowrap;
+        padding: 6px 12px;
+        font-size: 11px;
+      }
+      .orders-actions-group {
+        width: 100%;
+        justify-content: space-between;
+        margin-left: 0;
+        gap: 8px;
+      }
+      .btn-export-csv, .btn-refresh-data {
+        flex: 1;
+        justify-content: center;
+        padding: 9px 10px;
+        font-size: 11px;
+      }
+
+      /* Tables Horizontal Scroll */
+      table {
+        min-width: 680px;
+      }
+      th {
+        padding: 10px 12px;
+        font-size: 10px;
+      }
+      td {
+        padding: 10px 12px;
+        font-size: 12px;
+      }
+
+      /* Grids: 1 column on phone */
+      .product-grid, .briefcase-grid {
+        grid-template-columns: 1fr;
+        gap: 14px;
+      }
+      .product-card-admin, .briefcase-item {
+        padding: 16px 14px;
+        border-radius: 16px;
+      }
+
+      /* Modals */
+      .modal-backdrop {
+        padding: 8px;
+      }
+      .modal-box {
+        max-height: 96vh;
+        border-radius: 18px;
+        width: 100%;
+      }
+      .modal-header {
+        padding: 14px 16px;
+      }
+      .modal-body {
+        padding: 16px 14px;
+      }
+      .modal-footer {
+        padding: 12px 14px;
+        flex-direction: column-reverse;
+        gap: 8px;
+      }
+      .modal-footer button {
+        width: 100%;
+        justify-content: center;
+      }
+
+      /* Login Screen */
+      .login-wrapper {
+        padding: 14px 10px;
+      }
+      .login-card {
+        padding: 24px 18px;
+        border-radius: 20px;
+      }
+      .login-title {
+        font-size: 20px;
+      }
+      .login-sub {
+        font-size: 12.5px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -994,7 +1215,7 @@ $maskedEmail = substr(ADMIN_EMAIL, 0, 3) . '***@' . explode('@', ADMIN_EMAIL)[1]
         </div>
       </div>
 
-      <div>
+      <div class="table-responsive">
         <table>
           <thead>
             <tr>
@@ -1478,7 +1699,7 @@ $maskedEmail = substr(ADMIN_EMAIL, 0, 3) . '***@' . explode('@', ADMIN_EMAIL)[1]
       </div>
 
       <!-- SUB-TAB 1: SISWA & PROGRES -->
-      <div id="lmsSubStudents">
+      <div id="lmsSubStudents" class="table-responsive">
         <table>
           <thead>
             <tr>
@@ -1518,7 +1739,7 @@ $maskedEmail = substr(ADMIN_EMAIL, 0, 3) . '***@' . explode('@', ADMIN_EMAIL)[1]
       </div>
 
       <!-- SUB-TAB 3: RIWAYAT KUIS -->
-      <div id="lmsSubQuizzes" style="display:none;">
+      <div id="lmsSubQuizzes" class="table-responsive" style="display:none;">
         <table>
           <thead>
             <tr>
@@ -1617,7 +1838,7 @@ $maskedEmail = substr(ADMIN_EMAIL, 0, 3) . '***@' . explode('@', ADMIN_EMAIL)[1]
           </div>
         </div>
 
-        <div>
+        <div class="table-responsive">
           <table>
             <thead>
               <tr>
