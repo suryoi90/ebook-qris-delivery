@@ -191,11 +191,11 @@ function renderSafeHtml($html) {
     /* Hero Section with Fluid Layout */
     .hero {
       padding: clamp(28px, 4vw, 56px) 0 clamp(24px, 3.5vw, 48px);
-      display: grid; grid-template-columns: 1.2fr 0.8fr; gap: clamp(24px, 4vw, 54px); align-items: center;
+      display: grid; grid-template-columns: 1.08fr 0.92fr; gap: clamp(24px, 4vw, 48px); align-items: center;
     }
     @media (max-width: 900px) {
       .hero { grid-template-columns: 1fr; gap: 28px; }
-      .hero-3d-card { max-width: 440px; margin: 0 auto; width: 100%; }
+      .hero-3d-card { max-width: 480px; margin: 0 auto; width: 100%; }
     }
     .hero-tag {
       display: inline-flex; align-items: center; gap: 6px;
@@ -237,12 +237,12 @@ function renderSafeHtml($html) {
 
     .hero-3d-card {
       background: #ffffff; border: 1px solid var(--color-blue-border); border-radius: 28px;
-      padding: 16px; box-shadow: 0 20px 40px rgba(15, 34, 74, 0.05);
+      padding: 12px; box-shadow: 0 24px 50px rgba(15, 34, 74, 0.08);
       position: relative; overflow: hidden;
+      width: 100%; max-width: 520px; margin: 0 auto;
     }
     .hero-3d-img {
       width: 100%; height: auto; border-radius: 20px; display: block;
-      aspect-ratio: 4/3; object-fit: cover;
       transition: transform 0.3s ease;
     }
     .hero-3d-card:hover .hero-3d-img { transform: scale(1.02); }
