@@ -1,0 +1,2 @@
+# Allow up to 80MB upload for admin master ebook PDFs
+LimitRequestBody 83886080
